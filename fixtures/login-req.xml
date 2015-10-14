@@ -1,0 +1,15 @@
+<methodCall>
+  <methodName>login</methodName>
+  <params>
+    <param>
+      <value>
+        <string>john</string>
+      </value>
+    </param>
+    <param>
+      <value>
+        <string>doe</string>
+      </value>
+    </param>
+  </params>
+</methodCall>

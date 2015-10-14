@@ -1,0 +1,247 @@
+This is a short document that lists the xmlrpc calls needed.
+
+-- login:
+curl -XPOST -d '
+<methodCall>
+  <methodName>login</methodName>
+  <params>
+    <param>
+      <value>
+        <string>cobbler</string>
+      </value>
+    </param>
+    <param>
+      <value>
+        <string>cobbler</string>
+      </value>
+    </param>
+  </params>
+</methodCall>
+' http://localhost:25151/
+
+<?xml version='1.0'?>
+<methodResponse>
+  <params>
+    <param>
+      <value>
+        <string>ZyWe2dxicTWGsDpbo+WT3z1WZ2trEgfoaw==</string>
+      </value>
+    </param>
+  </params>
+</methodResponse>
+
+-- create new system:
+curl -XPOST -d '
+<methodCall>
+  <methodName>new_system</methodName>
+  <params>
+    <param>
+      <value>
+        <string>ZyWe2dxicTWGsDpbo+WT3z1WZ2trEgfoaw==</string>
+      </value>
+    </param>
+  </params>
+</methodCall>
+' http://localhost:25151/
+
+<?xml version='1.0'?>
+<methodResponse>
+  <params>
+    <param>
+      <value>
+        <string>___NEW___system::qxK4MZaxtZzTaxZW98nNZWbgkmyTXtU14Q==</string>
+      </value>
+    </param>
+  </params>
+</methodResponse>
+
+-- set system name:
+curl -XPOST -d '
+<methodCall>
+  <methodName>modify_system</methodName>
+  <params>
+    <param>
+      <value>
+        <string>___NEW___system::qxK4MZaxtZzTaxZW98nNZWbgkmyTXtU14Q==</string>
+      </value>
+    </param>
+    <param>
+      <value>
+        <string>name</string>
+      </value>
+    </param>
+    <param>
+      <value>
+        <string>systemname01</string>
+      </value>
+    </param>
+    <param>
+      <value>
+        <string>ZyWe2dxicTWGsDpbo+WT3z1WZ2trEgfoaw==</string>
+      </value>
+    </param>
+  </params>
+</methodCall>
+' http://localhost:25151/
+
+<?xml version='1.0'?>
+<methodResponse>
+  <params>
+    <param>
+      <value><boolean>1</boolean></value>
+    </param>
+  </params>
+</methodResponse>
+
+-- set system profile:
+curl -XPOST -d '
+<methodCall>
+  <methodName>modify_system</methodName>
+  <params>
+    <param>
+      <value>
+        <string>___NEW___system::qxK4MZaxtZzTaxZW98nNZWbgkmyTXtU14Q==</string>
+      </value>
+    </param>
+    <param>
+      <value>
+        <string>profile</string>
+      </value>
+    </param>
+    <param>
+      <value>
+        <string>centos7-x86_64</string>
+      </value>
+    </param>
+    <param>
+      <value>
+        <string>ZyWe2dxicTWGsDpbo+WT3z1WZ2trEgfoaw==</string>
+      </value>
+    </param>
+  </params>
+</methodCall>
+' http://localhost:25151/
+
+-- configure network interface (still need to figure out name of gateway property):
+curl -XPOST -d '
+<methodCall>
+  <methodName>modify_system</methodName>
+  <params>
+    <param>
+      <value>
+        <string>___NEW___system::ridhgThzSpL5wwjdWSonGsM8nv/HtSfNQQ==</string>
+      </value>
+    </param>
+    <param>
+      <value>
+        <string>modify_interface</string>
+      </value>
+    </param>
+    <param>
+      <value>
+        <struct>
+          <member>
+            <name>macaddress-eth0</name>
+            <value>
+              <string>01:02:03:04:05:06</string>
+            </value>
+          </member>
+          <member>
+            <name>ipaddress-eth0</name>
+            <value>
+              <string>10.20.30.40</string>
+            </value>
+          </member>
+          <member>
+            <name>dnsname-eth0</name>
+            <value>
+              <string>systemname01.domain.tld</string>
+            </value>
+          </member>
+          <member>
+            <name>subnetmask-eth0</name>
+            <value>
+              <string>255.255.255.0</string>
+            </value>
+          </member>
+          <member>
+            <name>if-gateway-eth0</name>
+            <value>
+              <string>10.20.30.1</string>
+            </value>
+          </member>
+        </struct>
+      </value>
+    </param>
+    <param>
+      <value>
+        <string>ZyWe2dxicTWGsDpbo+WT3z1WZ2trEgfoaw==</string>
+      </value>
+    </param>
+  </params>
+</methodCall>
+' http://localhost:25151/
+
+<?xml version='1.0'?>
+<methodResponse>
+  <params>
+    <param>
+      <value>
+        <boolean>1</boolean>
+      </value>
+    </param>
+  </params>
+</methodResponse>
+
+-- save the system:
+curl -XPOST -d '
+<methodCall>
+  <methodName>save_system</methodName>
+  <params>
+    <param>
+      <value>
+        <string>___NEW___system::qxK4MZaxtZzTaxZW98nNZWbgkmyTXtU14Q==</string>
+      </value>
+    </param>
+    <param>
+      <value>
+        <string>ZyWe2dxicTWGsDpbo+WT3z1WZ2trEgfoaw==</string>
+      </value>
+    </param>
+  </params>
+</methodCall>
+' http://localhost:25151/
+
+<?xml version='1.0'?>
+<methodResponse>
+  <params>
+    <param>
+      <value><boolean>1</boolean></value>
+    </param>
+  </params>
+</methodResponse>
+
+result will be 0 if save failed.
+
+
+--- sync
+curl -XPOST -d '
+<methodCall>
+  <methodName>sync</methodName>
+  <params>
+    <param>
+      <value><string>zYli1fFyS3Hi6qlSPMorEWfiUhBfAuOsrA==</string></value>
+    </param>
+  </params>
+</methodCall>
+' http://localhost:25151/
+
+<?xml version='1.0'?>
+<methodResponse>
+  <params>
+    <param>
+      <value><boolean>1</boolean></value>
+    </param>
+  </params>
+</methodResponse>
+

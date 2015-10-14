@@ -1,0 +1,10 @@
+<methodCall>
+  <methodName>new_system</methodName>
+  <params>
+    <param>
+      <value>
+        <string>securetoken99</string>
+      </value>
+    </param>
+  </params>
+</methodCall>
