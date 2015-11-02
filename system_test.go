@@ -19,6 +19,7 @@ func TestCreateSystem(t *testing.T) {
 	sysConfig := SystemConfig{
 		Name:    "blah",
 		Profile: "some-profile",
+    Hostname: "blahhost",
 		Network: NetworkConfig{
 			Mac:     "01:02:03:04:05:06",
 			DNSName: "blah",
@@ -144,6 +145,30 @@ func TestSetSystemProfile(t *testing.T) {
 	system.Id = "___NEW___system::c3po"
 
 	ok, err := system.SetProfile("centos7-x86_64")
+	utils.FailOnError(t, err)
+
+	if !ok {
+		t.Errorf("true expected; got false")
+	}
+}
+
+func TestSetSystemHostname(t *testing.T) {
+	expectedReq, err := utils.Fixture("set-system-hostname-req.xml")
+	utils.FailOnError(t, err)
+
+	response, err := utils.Fixture("set-system-hostname-res.xml")
+	utils.FailOnError(t, err)
+
+	hc := utils.NewStubHTTPClient(t)
+	hc.Expected = expectedReq
+	hc.Response = response
+
+	c := NewClient(hc, config)
+	c.token = "abc123"
+	system := System{cobblerClient: &c}
+	system.Id = "___NEW___system::c3po"
+
+	ok, err := system.SetHostname("blahhost")
 	utils.FailOnError(t, err)
 
 	if !ok {

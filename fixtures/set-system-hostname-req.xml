@@ -1,0 +1,25 @@
+<methodCall>
+  <methodName>modify_system</methodName>
+  <params>
+    <param>
+      <value>
+        <string>___NEW___system::c3po</string>
+      </value>
+    </param>
+    <param>
+      <value>
+        <string>hostname</string>
+      </value>
+    </param>
+    <param>
+      <value>
+        <string>blahhost</string>
+      </value>
+    </param>
+    <param>
+      <value>
+        <string>abc123</string>
+      </value>
+    </param>
+  </params>
+</methodCall>

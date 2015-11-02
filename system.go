@@ -11,8 +11,9 @@ type System struct {
 }
 
 type SystemConfig struct {
-	Name    string
-	Profile string
+	Name     string
+	Profile  string
+  Hostname string
 	Network NetworkConfig
 }
 
@@ -40,6 +41,11 @@ func (c *Client) CreateSystem(config SystemConfig) (*System, error) {
 	}
 
 	_, err = system.SetProfile(config.Profile)
+	if err != nil {
+		return nil, err
+	}
+
+	_, err = system.SetHostname(config.Hostname)
 	if err != nil {
 		return nil, err
 	}
@@ -115,6 +121,11 @@ func (s *System) SetName(name string) (bool, error) {
 
 func (s *System) SetProfile(profile string) (bool, error) {
 	body := tplSetSystemProfile(s.Id, profile, s.cobblerClient.token)
+	return s.modify(body)
+}
+
+func (s *System) SetHostname(hostname string) (bool, error) {
+	body := tplSetSystemHostname(s.Id, hostname, s.cobblerClient.token)
 	return s.modify(body)
 }
 

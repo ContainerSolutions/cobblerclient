@@ -105,6 +105,16 @@ func tplSetSystemProfile(id, profile, token string) io.Reader {
 	return tplModifySystem(id, "profile", txt, token)
 }
 
+func tplSetSystemHostname(id, hostname, token string) io.Reader {
+	tpl := `<param>
+      <value>
+        <string>%s</string>
+      </value>
+    </param>`
+	txt := fmt.Sprintf(tpl, hostname)
+	return tplModifySystem(id, "hostname", txt, token)
+}
+
 func tplSetSystemNetwork(id string, config NetworkConfig, token string) io.Reader {
 	tpl := `<param>
       <value>
