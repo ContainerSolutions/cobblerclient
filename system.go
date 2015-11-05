@@ -150,3 +150,13 @@ func (s *System) modify(body io.Reader) (bool, error) {
 func systemIDFromResponse(body []byte) (string, error) {
 	return findXPath("//param/value/string", body)
 }
+
+func (c *Client) DeleteSystem(name string) (bool, error) {
+	reqBody := tplDeleteSystem(name, c.token)
+	result, err := c.post(reqBody)
+	if err != nil {
+		return false, err
+	}
+
+  return boolFromResponse(result) 
+}

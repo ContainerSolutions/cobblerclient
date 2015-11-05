@@ -186,3 +186,24 @@ func tplModifySystem(id, target, changes, token string) io.Reader {
 	txt := fmt.Sprintf(tpl, id, target, changes, token)
 	return bytes.NewReader([]byte(txt))
 }
+
+func tplDeleteSystem(name, token string) io.Reader {
+	tpl := `<methodCall>
+  <methodName>remove_system</methodName>
+  <params>
+    <param>
+      <value>
+        <string>%s</string>
+      </value>
+    </param>
+    <param>
+      <value>
+        <string>%s</string>
+      </value>
+    </param>
+  </params>
+</methodCall>
+`
+	txt := fmt.Sprintf(tpl, name, token)
+	return bytes.NewReader([]byte(txt))
+}
