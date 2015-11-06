@@ -60,11 +60,6 @@ func (c *Client) CreateSystem(config SystemConfig) (*System, error) {
 		return nil, err
 	}
 
-	_, err = c.Sync()
-	if err != nil {
-		return nil, err
-	}
-
 	return &system, nil
 }
 
