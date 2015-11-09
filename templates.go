@@ -115,6 +115,16 @@ func tplSetSystemHostname(id, hostname, token string) io.Reader {
 	return tplModifySystem(id, "hostname", txt, token)
 }
 
+func tplSetSystemNameservers(id, nameservers, token string) io.Reader {
+	tpl := `<param>
+      <value>
+        <string>%s</string>
+      </value>
+    </param>`
+	txt := fmt.Sprintf(tpl, nameservers)
+	return tplModifySystem(id, "name_servers", txt, token)
+}
+
 func tplSetSystemNetwork(id string, config NetworkConfig, token string) io.Reader {
 	tpl := `<param>
       <value>

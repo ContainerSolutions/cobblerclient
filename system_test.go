@@ -17,9 +17,10 @@ import (
 func TestCreateSystem(t *testing.T) {
 	t.Skip()
 	sysConfig := SystemConfig{
-		Name:    "blah",
-		Profile: "some-profile",
-    Hostname: "blahhost",
+		Name:        "blah",
+		Profile:     "some-profile",
+		Hostname:    "blahhost",
+		Nameservers: "8.8.8.8 8.8.4.4",
 		Network: NetworkConfig{
 			Mac:     "01:02:03:04:05:06",
 			DNSName: "blah",
@@ -176,6 +177,29 @@ func TestSetSystemHostname(t *testing.T) {
 	}
 }
 
+func TestSetSystemNameservers(t *testing.T) {
+	expectedReq, err := utils.Fixture("set-system-nameservers-req.xml")
+	utils.FailOnError(t, err)
+
+	response, err := utils.Fixture("set-system-nameservers-res.xml")
+	utils.FailOnError(t, err)
+
+	hc := utils.NewStubHTTPClient(t)
+	hc.Expected = expectedReq
+	hc.Response = response
+
+	c := NewClient(hc, config)
+	c.token = "securetoken99"
+	system := System{cobblerClient: &c}
+	system.Id = "___NEW___system::foobar123=="
+
+	ok, err := system.SetNameservers("8.8.8.8 8.8.4.4")
+	utils.FailOnError(t, err)
+
+	if !ok {
+		t.Errorf("true expected; got false")
+	}
+}
 func TestSetSystemNetwork(t *testing.T) {
 	expectedReq, err := utils.Fixture("set-system-network-req.xml")
 	utils.FailOnError(t, err)
