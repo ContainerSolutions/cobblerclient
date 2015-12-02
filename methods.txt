@@ -245,3 +245,58 @@ curl -XPOST -d '
   </params>
 </methodResponse>
 
+-- create a kickstart file:
+curl -XPOST -d '
+<methodCall>
+  <methodName>read_or_write_kickstart_template</methodName>
+  <params>
+    <param>
+      <value>
+        <string>/var/lib/cobbler/kickstarts/foo.ks</string>
+      </value>
+    </param>
+    <param>
+      <value>
+        <boolean>0</boolean>
+      </value>
+    </param>
+    <param>
+      <value>
+        <string># test content for the kickstart file</string>
+      </value>
+    </param>
+    <param>
+      <value>
+        <string>zYli1fFyS3Hi6qlSPMorEWfiUhBfAuOsrA==</string>
+      </value>
+    </param>
+  </params>
+</methodCall>' http://localhost:25151/
+
+-- create a snippet:
+curl -XPOST -d '
+<methodCall>
+  <methodName>read_or_write_snippet</methodName>
+  <params>
+    <param>
+      <value>
+        <string>/var/lib/cobbler/snippets/foo</string>
+      </value>
+    </param>
+    <param>
+      <value>
+        <boolean>0</boolean>
+      </value>
+    </param>
+    <param>
+      <value>
+        <string># test content for the snippet file</string>
+      </value>
+    </param>
+    <param>
+      <value>
+        <string>zYli1fFyS3Hi6qlSPMorEWfiUhBfAuOsrA==</string>
+      </value>
+    </param>
+  </params>
+</methodCall>' http://localhost:25151/
