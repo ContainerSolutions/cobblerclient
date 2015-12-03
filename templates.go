@@ -264,3 +264,34 @@ func tplCreateKickstartFile(name, body, token string) io.Reader {
 	txt := fmt.Sprintf(tpl, name, body, token)
 	return bytes.NewReader([]byte(txt))
 }
+
+func tplCreateSnippet(name, body, token string) io.Reader {
+	tpl := `<methodCall>
+  <methodName>read_or_write_snippet</methodName>
+  <params>
+    <param>
+      <value>
+        <string>/var/lib/cobbler/snippets/%s</string>
+      </value>
+    </param>
+    <param>
+      <value>
+        <boolean>0</boolean>
+      </value>
+    </param>
+    <param>
+      <value>
+        <string>%s</string>
+      </value>
+    </param>
+    <param>
+      <value>
+        <string>%s</string>
+      </value>
+    </param>
+  </params>
+</methodCall>
+`
+	txt := fmt.Sprintf(tpl, name, body, token)
+	return bytes.NewReader([]byte(txt))
+}
