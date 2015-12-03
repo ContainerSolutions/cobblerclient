@@ -156,6 +156,9 @@ func boolFromResponse(body []byte) (bool, error) {
 }
 
 // Find the given xpath in the given document.
+// params:
+// - xpath: the xpath to look for
+// - doc:   the XML document to inspect. Must be an array of bytes.
 func findXPath(xpath string, doc []byte) (string, error) {
 	path := xmlpath.MustCompile(xpath)
 	rootNode, err := xmlpath.Parse(bytes.NewBuffer(doc))

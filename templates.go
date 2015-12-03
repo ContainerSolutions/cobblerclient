@@ -233,3 +233,34 @@ func tplDeleteSystem(name, token string) io.Reader {
 	txt := fmt.Sprintf(tpl, name, token)
 	return bytes.NewReader([]byte(txt))
 }
+
+func tplCreateKickstartFile(name, body, token string) io.Reader {
+	tpl := `<methodCall>
+  <methodName>read_or_write_kickstart_template</methodName>
+  <params>
+    <param>
+      <value>
+        <string>/var/lib/cobbler/kickstarts/%s.ks</string>
+      </value>
+    </param>
+    <param>
+      <value>
+        <boolean>0</boolean>
+      </value>
+    </param>
+    <param>
+      <value>
+        <string>%s</string>
+      </value>
+    </param>
+    <param>
+      <value>
+        <string>%s</string>
+      </value>
+    </param>
+  </params>
+</methodCall>
+`
+	txt := fmt.Sprintf(tpl, name, body, token)
+	return bytes.NewReader([]byte(txt))
+}

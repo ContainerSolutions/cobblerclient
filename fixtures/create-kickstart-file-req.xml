@@ -1,0 +1,25 @@
+<methodCall>
+  <methodName>read_or_write_kickstart_template</methodName>
+  <params>
+    <param>
+      <value>
+        <string>/var/lib/cobbler/kickstarts/foo.ks</string>
+      </value>
+    </param>
+    <param>
+      <value>
+        <boolean>0</boolean>
+      </value>
+    </param>
+    <param>
+      <value>
+        <string>sample content</string>
+      </value>
+    </param>
+    <param>
+      <value>
+        <string>kirby123</string>
+      </value>
+    </param>
+  </params>
+</methodCall>
