@@ -16,6 +16,7 @@ limitations under the License.
 
 package cobblerclient
 
+/*
 import (
 	"bytes"
 	"fmt"
@@ -295,3 +296,4 @@ func tplCreateSnippet(name, body, token string) io.Reader {
 	txt := fmt.Sprintf(tpl, name, body, token)
 	return bytes.NewReader([]byte(txt))
 }
+*/

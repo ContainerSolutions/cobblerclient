@@ -21,6 +21,8 @@ type Snippet struct {
 	Body string // The contents of the kickstart file
 }
 
+/*
+
 // Creates a snippet in Cobbler.
 // Returns true/false and returns an optional error in case
 // that anything goes wrong.
@@ -34,3 +36,5 @@ func (c *Client) CreateSnippet(s *Snippet) (bool, error) {
 
 	return boolFromResponse(res)
 }
+
+*/

@@ -21,6 +21,7 @@ type KickstartFile struct {
 	Body string // The contents of the kickstart file
 }
 
+/*
 // Creates a kickstart file in Cobbler.
 // Returns true/false and returns an optional error in case
 // that anything goes wrong.
@@ -34,3 +35,4 @@ func (c *Client) CreateKickstartFile(f *KickstartFile) (bool, error) {
 
 	return boolFromResponse(res)
 }
+*/
