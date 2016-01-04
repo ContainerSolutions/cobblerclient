@@ -17,30 +17,27 @@ limitations under the License.
 package cobblerclient
 
 import (
-	"io"
+	_ "fmt"
+	_ "io"
+	_ "time"
 )
 
-type System struct {
-	Id            string
-	cobblerClient *Client
-	SystemConfig
+func (c *Client) GetSystems() ([]map[string]interface{}, error) {
+	var systems []map[string]interface{}
+
+	result, err := c.Call("get_systems", c.token)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, s := range result.([]interface{}) {
+		systems = append(systems, s.(map[string]interface{}))
+	}
+
+	return systems, nil
 }
 
-type SystemConfig struct {
-	Name        string
-	Profile     string
-	Hostname    string
-	Nameservers string
-	Network     NetworkConfig
-}
-
-type NetworkConfig struct {
-	Mac     string
-	DNSName string
-	Ip      string
-	Netmask string
-	Gateway string
-}
+/*
 
 func (c *Client) CreateSystem(config SystemConfig) (*System, error) {
 	id, err := NewSystemId(c)
@@ -182,3 +179,4 @@ func (c *Client) DeleteSystem(name string) (bool, error) {
 
 	return boolFromResponse(result)
 }
+*/
