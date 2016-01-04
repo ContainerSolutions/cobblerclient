@@ -84,7 +84,6 @@ func (c *Client) Call(method string, args ...interface{}) (interface{}, error) {
 // Performs a login request to Cobbler using the credentials provided
 // in the configuration in the initializer.
 func (c *Client) Login() (bool, error) {
-	var result interface{}
 	result, err := c.Call("login", c.config.Username, c.config.Password)
 	if err != nil {
 		return false, err
