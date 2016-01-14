@@ -17,166 +17,305 @@ limitations under the License.
 package cobblerclient
 
 import (
-	_ "fmt"
-	_ "io"
-	_ "time"
+	"fmt"
+	"reflect"
+	"strings"
+
+	"github.com/mitchellh/mapstructure"
 )
 
-func (c *Client) GetSystems() ([]map[string]interface{}, error) {
-	var systems []map[string]interface{}
+// CreateSystemOpts contains fields to set for a new system
+type CreateSystemOpts struct {
+	BootFiles                string   `mapstructure:"boot_files"`
+	Comment                  string   `mapstructure:"comment"`
+	EnableGPXE               bool     `mapstructure:"enable_gpxe"`
+	FetchableFiles           string   `mapstructure:"fetchable_files"`
+	Gateway                  string   `mapstructure:"gateway"`
+	Hostname                 string   `mapstructure:"hostname"`
+	Image                    string   `mapstructure:"image"`
+	IPv6DefaultDevice        string   `mapstructure:"ipv6_default_device"`
+	KernelOptions            string   `mapstructure:"kernel_options"`
+	KernelOptionsPost        string   `mapstructure:"kernel_options_post"`
+	Kickstart                string   `mapstructure:"kickstart"`
+	KSMeta                   string   `mapstructure:"ks_meta"`
+	LDAPEnabled              bool     `mapstructure:"ldap_enabled"`
+	LDAPType                 string   `mapstructure:"ldap_type"`
+	MGMTClasses              []string `mapstructure:"mgmt_classes"`
+	MGMTParameters           string   `mapstructure:"mgmt_parameters"`
+	MonitEnabled             bool     `mapstructure:"monit_enabled"`
+	Name                     string   `mapstructure:"name"`
+	NameServersSearch        []string `mapstructure:"name_servers_search"`
+	NameServers              []string `mapstructure:"name_servers"`
+	NetbootEnabled           bool     `mapstructure:"netboot_enabled"`
+	Owners                   []string `mapstructure:"owners"`
+	PowerAddress             string   `mapstructure:"power_address"`
+	PowerID                  string   `mapstructure:"power_id"`
+	PowerPass                string   `mapstructure:"power_pass"`
+	PowerType                string   `mapstructure:"power_type"`
+	PowerUser                string   `mapstructure:"power_user"`
+	Profile                  string   `mapstructure:"profile"`
+	Proxy                    string   `mapstructure:"proxy"`
+	RedHatManagementKey      string   `mapstructure:"redhat_management_key"`
+	RedhatManagementServer   string   `mapstructure:"redhat_management_server"`
+	Status                   string   `mapstructure:"status"`
+	TemplateFiles            string   `mapstructure:"template_files"`
+	TemplateRemoteKickstarts int      `mapstructure:"template_remote_kickstarts"`
+	VirtAutoBoot             string   `mapstructure:"virt_auto_boot"`
+	VirtFileSize             string   `mapstructure:"virt_file_size"`
+	VirtCPUs                 string   `mapstructure:"virt_cpus"`
+	VirtType                 string   `mapstructure:"virt_type"`
+	VirtPath                 string   `mapstructure:"virt_path"`
+	VirtPXEBoot              int      `mapstructure:"virt_pxe_boot"`
+	VirtRam                  string   `mapstructure:"virt_ram"`
+	VirtDiskDriver           string   `mapstructure:"virt_disk_driver"`
 
-	result, err := c.Call("get_systems", c.token)
+	// There can't be a proper Interface struct because of how
+	// Cobbler mangles the interface attribute name to "netmask-eth0"
+	Interfaces map[string]interface{} `mapstructure:"interfaces"`
+}
+
+// System is a created system.
+type System struct {
+	// These are internal fields and cannot be modified.
+	Ctime                 float64 `mapstructure:"ctime"` // TODO: convert to time
+	Depth                 int     `mapstructure:"depth"`
+	ID                    string  `mapstructure:"uid"`
+	IPv6Autoconfiguration bool    `mapstructure:"ipv6_autoconfiguration"`
+	Mtime                 float64 `mapstructure:"mtime"` // TODO: convert to time
+	ReposEnabled          bool    `mapstructure:"repos_enabled"`
+
+	BootFiles                string                 `mapstructure:"boot_files"`
+	Comment                  string                 `mapstructure:"comment"`
+	EnableGPXE               bool                   `mapstructure:"enable_gpxe"`
+	FetchableFiles           string                 `mapstructure:"fetchable_files"`
+	Gateway                  string                 `mapstructure:"gateway"`
+	Hostname                 string                 `mapstructure:"hostname"`
+	Image                    string                 `mapstructure:"image"`
+	Interfaces               map[string]interface{} `mapstructure:"interfaces"`
+	IPv6DefaultDevice        string                 `mapstructure:"ipv6_default_device"`
+	KernelOptions            string                 `mapstructure:"kernel_options"`
+	KernelOptionsPost        string                 `mapstructure:"kernel_options_post"`
+	Kickstart                string                 `mapstructure:"kickstart"`
+	KSMeta                   string                 `mapstructure:"ks_meta"`
+	LDAPEnabled              bool                   `mapstructure:"ldap_enabled"`
+	LDAPType                 string                 `mapstructure:"ldap_type"`
+	MGMTClasses              []string               `mapstructure:"mgmt_classes"`
+	MGMTParameters           string                 `mapstructure:"mgmt_parameters"`
+	MonitEnabled             bool                   `mapstructure:"monit_enabled"`
+	Name                     string                 `mapstructure:"name"`
+	NameServersSearch        []string               `mapstructure:"name_servers_search"`
+	NameServers              []string               `mapstructure:"name_servers"`
+	NetbootEnabled           bool                   `mapstructure:"netboot_enabled"`
+	Owners                   []string               `mapstructure:"owners"`
+	PowerAddress             string                 `mapstructure:"power_address"`
+	PowerID                  string                 `mapstructure:"power_id"`
+	PowerPass                string                 `mapstructure:"power_pass"`
+	PowerType                string                 `mapstructure:"power_type"`
+	PowerUser                string                 `mapstructure:"power_user"`
+	Profile                  string                 `mapstructure:"profile"`
+	Proxy                    string                 `mapstructure:"proxy"`
+	RedHatManagementKey      string                 `mapstructure:"redhat_management_key"`
+	RedhatManagementServer   string                 `mapstructure:"redhat_management_server"`
+	Status                   string                 `mapstructure:"status"`
+	TemplateFiles            string                 `mapstructure:"template_files"`
+	TemplateRemoteKickstarts int                    `mapstructure:"template_remote_kickstarts"`
+	VirtAutoBoot             string                 `mapstructure:"virt_auto_boot"`
+	VirtFileSize             string                 `mapstructure:"virt_file_size"`
+	VirtCPUs                 string                 `mapstructure:"virt_cpus"`
+	VirtType                 string                 `mapstructure:"virt_type"`
+	VirtPath                 string                 `mapstructure:"virt_path"`
+	VirtPXEBoot              int                    `mapstructure:"virt_pxe_boot"`
+	VirtRam                  string                 `mapstructure:"virt_ram"`
+	VirtDiskDriver           string                 `mapstructure:"virt_disk_driver"`
+}
+
+// GetSystems returns all systems in Cobbler.
+func (c *Client) GetSystems() ([]System, error) {
+	var systems []System
+
+	result, err := c.Call("get_systems", "", c.token)
 	if err != nil {
 		return nil, err
 	}
 
 	for _, s := range result.([]interface{}) {
-		systems = append(systems, s.(map[string]interface{}))
+		var system System
+		if err := decodeSystem(s, &system); err != nil {
+			return nil, err
+		}
+		systems = append(systems, system)
 	}
 
 	return systems, nil
 }
 
-/*
+// GetSystem returns a single system obtained by its name.
+func (c *Client) GetSystem(name string) (*System, error) {
+	var system System
 
-func (c *Client) CreateSystem(config SystemConfig) (*System, error) {
-	id, err := NewSystemId(c)
+	result, err := c.Call("get_system", name, c.token)
 	if err != nil {
-		return nil, err
+		return &system, err
 	}
 
-	system := System{cobblerClient: c}
-	system.SystemConfig = config
-	system.Id = id
+	err = decodeSystem(result, &system)
 
-	_, err = system.SetName(config.Name)
-	if err != nil {
-		return nil, err
-	}
-
-	_, err = system.SetProfile(config.Profile)
-	if err != nil {
-		return nil, err
-	}
-
-	_, err = system.SetHostname(config.Hostname)
-	if err != nil {
-		return nil, err
-	}
-
-	_, err = system.SetNameservers(config.Nameservers)
-	if err != nil {
-		return nil, err
-	}
-
-	_, err = system.SetNetwork(config.Network)
-	if err != nil {
-		return nil, err
-	}
-
-	_, err = system.Save()
-	if err != nil {
-		return nil, err
-	}
-
-	return &system, nil
+	return &system, err
 }
 
-// Requests Cobbler to create a new system.
-// Returns the newly created system if it was successfully created.
-// Returns an error otherwise.
-func NewSystemId(c *Client) (string, error) {
-	body := tplNewSystem(c.token)
-	res, err := c.post(body)
-	if err != nil {
-		return "", err
+// CreateSystem creates a system.
+// It ensures that either a Profile or Image are set and then sets other default values.
+func (c *Client) CreateSystem(system CreateSystemOpts) (*System, error) {
+	if system.Profile == "" && system.Image == "" {
+		return nil, fmt.Errorf("A system must have a profile or image set.")
 	}
 
-	return systemIDFromResponse(res)
-}
-
-// Saves the current state of the system.
-// Returns true if the save was successful, or false if it was not.
-// Returns an error if anything went wrong
-func (s *System) Save() (bool, error) {
-	reqBody := tplSaveSystem(s.Id, s.cobblerClient.token)
-	res, err := s.cobblerClient.post(reqBody)
-	if err != nil {
-		return false, err
+	// Set default values. I guess these aren't taken care of by Cobbler?
+	if system.BootFiles == "" {
+		system.BootFiles = "<<inherit>>"
 	}
 
-	return boolFromResponse(res)
+	if system.FetchableFiles == "" {
+		system.FetchableFiles = "<<inherit>>"
+	}
+
+	if system.MGMTParameters == "" {
+		system.MGMTParameters = "<<inherit>>"
+	}
+
+	if system.PowerType == "" {
+		system.PowerType = "ipmilan"
+	}
+
+	if system.Status == "" {
+		system.Status = "production"
+	}
+
+	if system.VirtAutoBoot == "" {
+		system.VirtAutoBoot = "0"
+	}
+
+	if system.VirtCPUs == "" {
+		system.VirtCPUs = "<<inherit>>"
+	}
+
+	if system.VirtDiskDriver == "" {
+		system.VirtDiskDriver = "<<inherit>>"
+	}
+
+	if system.VirtFileSize == "" {
+		system.VirtFileSize = "<<inherit>>"
+	}
+
+	if system.VirtPath == "" {
+		system.VirtPath = "<<inherit>>"
+	}
+
+	if system.VirtRam == "" {
+		system.VirtRam = "<<inherit>>"
+	}
+
+	if system.VirtType == "" {
+		system.VirtType = "<<inherit>>"
+	}
+
+	// To create a system via the Cobbler API, first call new_system to obtain an ID
+	result, err := c.Call("new_system", c.token)
+	if err != nil {
+		return nil, err
+	}
+	newId := result.(string)
+
+	// Cobbler wants each field to be updated individually.
+	// Also, for some reason, arrays are flattened to space-delimited strings.
+	// Finally, Interface options are passed by a proper struct.
+	s := reflect.ValueOf(&system).Elem()
+	typeOfT := s.Type()
+	for i := 0; i < s.NumField(); i++ {
+		f := s.Field(i)
+		tag := typeOfT.Field(i).Tag
+		cobblerField := tag.Get("mapstructure")
+
+		switch f.Type().String() {
+		case "string", "bool", "int64", "int":
+			if err := c.UpdateSystemField(newId, cobblerField, f.Interface()); err != nil {
+				return nil, err
+			}
+		case "[]string":
+			v := strings.Join(f.Interface().([]string), " ")
+			if err := c.UpdateSystemField(newId, cobblerField, v); err != nil {
+				return nil, err
+			}
+		case "map[string]interface {}":
+			for nicName, nicData := range system.Interfaces {
+				nic := map[string]interface{}{}
+				for k, v := range nicData.(map[string]interface{}) {
+					attrName := fmt.Sprintf("%s-%s", k, nicName)
+					nic[attrName] = v
+				}
+				if err := c.UpdateSystemField(newId, "modify_interface", nic); err != nil {
+					return nil, err
+				}
+			}
+		default:
+			fmt.Printf("%s\n", f.Type().String())
+		}
+	}
+
+	if _, err := c.Call("save_system", newId, c.token); err != nil {
+		return nil, err
+	}
+
+	return c.GetSystem(system.Name)
 }
 
-// Requests Cobbler to create a new system and sets the newly created system's id
-// into the `system` instace.
-// Returns an error in case anything goes wrong.
-func (s *System) SetId() error {
-	body := tplNewSystem(s.cobblerClient.token)
-	res, err := s.cobblerClient.post(body)
-	if err != nil {
+// UpdateSystemField updates a single field in a given system.
+func (c *Client) UpdateSystemField(systemId, field, value interface{}) error {
+	if result, err := c.Call("modify_system", systemId, field, value, c.token); err != nil {
 		return err
+	} else {
+		if result.(bool) == false {
+			return fmt.Errorf("Error updating %s to %s.", field, value)
+		}
 	}
-
-	id, err := systemIDFromResponse(res)
-	if err != nil {
-		return err
-	}
-
-	s.Id = id
 
 	return nil
 }
 
-func (s *System) SetName(name string) (bool, error) {
-	body := tplSetSystemName(s.Id, name, s.cobblerClient.token)
-	return s.modify(body)
-}
-
-func (s *System) SetProfile(profile string) (bool, error) {
-	body := tplSetSystemProfile(s.Id, profile, s.cobblerClient.token)
-	return s.modify(body)
-}
-
-func (s *System) SetHostname(hostname string) (bool, error) {
-	body := tplSetSystemHostname(s.Id, hostname, s.cobblerClient.token)
-	return s.modify(body)
-}
-
-func (s *System) SetNameservers(nameservers string) (bool, error) {
-	body := tplSetSystemNameservers(s.Id, nameservers, s.cobblerClient.token)
-	return s.modify(body)
-}
-
-func (s *System) SetNetwork(config NetworkConfig) (bool, error) {
-	body := tplSetSystemNetwork(s.Id, config, s.cobblerClient.token)
-	return s.modify(body)
-}
-
-// Requests Cobbler to modify an existing system.
-func (s *System) modify(body io.Reader) (bool, error) {
-	_, err := s.cobblerClient.post(body)
+// decodeSystem is a custom mapstructure decoder to handle Cobbler's uniqueness.
+func decodeSystem(raw interface{}, system *System) error {
+	var metadata mapstructure.Metadata
+	decoder, err := mapstructure.NewDecoder(&mapstructure.DecoderConfig{
+		Metadata:         &metadata,
+		Result:           system,
+		WeaklyTypedInput: true,
+		DecodeHook:       systemDataHacks,
+	})
 
 	if err != nil {
-		return false, err
+		return err
 	}
 
-	return true, nil
-}
-
-// Given a Cobbler's response for creating a new system this will
-// return the newly created system's id or an error if anything goes wrong.
-func systemIDFromResponse(body []byte) (string, error) {
-	return findXPath("//param/value/string", body)
-}
-
-func (c *Client) DeleteSystem(name string) (bool, error) {
-	reqBody := tplDeleteSystem(name, c.token)
-	result, err := c.post(reqBody)
-	if err != nil {
-		return false, err
+	if err := decoder.Decode(raw); err != nil {
+		return err
 	}
 
-	return boolFromResponse(result)
+	return nil
 }
-*/
+
+// systemDataHacks is a hook for the mapstructure decoder.
+// It's used to smooth out issues with converting fields and types from Cobbler.
+func systemDataHacks(f, t reflect.Kind, data interface{}) (interface{}, error) {
+	dataVal := reflect.ValueOf(data)
+	if dataVal.String() == "~" {
+		return map[string]interface{}{}, nil
+	}
+	if f == reflect.Int64 && t == reflect.Bool {
+		if dataVal.Int() > 0 {
+			return true, nil
+		} else {
+			return false, nil
+		}
+	}
+	return data, nil
+}

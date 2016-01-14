@@ -22,6 +22,26 @@ import (
 	"github.com/ContainerSolutions/go-utils"
 )
 
+func TestGetSystems(t *testing.T) {
+	c := createStubHTTPClient(t, "get-systems-req.xml", "get-systems-res.xml")
+	systems, err := c.GetSystems()
+	utils.FailOnError(t, err)
+
+	if len(systems) != 1 {
+		t.Errorf("Wrong number of systems returned.")
+	}
+}
+
+func TestGetSystem(t *testing.T) {
+	c := createStubHTTPClient(t, "get-system-req.xml", "get-system-res.xml")
+	system, err := c.GetSystem("test")
+	utils.FailOnError(t, err)
+
+	if system.Name != "test" {
+		t.Errorf("Wrong system returned.")
+	}
+}
+
 /*
  * NOTE: We're skipping the testing of this method for now because
  *       the current implementation of the StubHTTPClient does not allow
@@ -30,6 +50,8 @@ import (
  *       This is a system test, so perhaps we can run Cobbler in a Docker container
  *       and take it from there.
  */
+
+/*
 func TestCreateSystem(t *testing.T) {
 	t.Skip()
 	sysConfig := SystemConfig{
@@ -246,3 +268,5 @@ func TestSetSystemNetwork(t *testing.T) {
 		t.Errorf("true expected; got false")
 	}
 }
+
+*/

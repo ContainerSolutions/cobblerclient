@@ -18,6 +18,7 @@ package cobblerclient
 
 import (
 	"bytes"
+	"fmt"
 	"io"
 	"io/ioutil"
 	"net/http"
@@ -58,7 +59,8 @@ func (c *Client) Call(method string, args ...interface{}) (interface{}, error) {
 		return nil, err
 	}
 
-	res, err := c.httpClient.Post(c.config.Url, bodyTypeXML, bytes.NewReader([]byte(reqBody)))
+	r := fmt.Sprintf("%s\n", string(reqBody))
+	res, err := c.httpClient.Post(c.config.Url, bodyTypeXML, bytes.NewReader([]byte(r)))
 	if err != nil {
 		return nil, err
 	}

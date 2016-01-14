@@ -26,8 +26,7 @@
             <name>name_servers_search</name>
             <value>
               <array>
-                <data>
-</data>
+                <data></data>
               </array>
             </value>
           </member>
@@ -167,8 +166,7 @@
             <name>mgmt_classes</name>
             <value>
               <array>
-                <data>
-</data>
+                <data></data>
               </array>
             </value>
           </member>
@@ -205,8 +203,7 @@
           <member>
             <name>interfaces</name>
             <value>
-              <struct>
-</struct>
+              <struct></struct>
             </value>
           </member>
           <member>
@@ -231,8 +228,7 @@
             <name>name_servers</name>
             <value>
               <array>
-                <data>
-</data>
+                <data></data>
               </array>
             </value>
           </member>
