@@ -23,51 +23,35 @@ import (
 )
 
 func TestCreateKickstartFile(t *testing.T) {
-	expectedReq, err := utils.Fixture("create-kickstart-file-req.xml")
-	utils.FailOnError(t, err)
+	c := createStubHTTPClient(t, "create-kickstart-file-req.xml", "create-kickstart-file-res.xml")
 
-	response, err := utils.Fixture("create-kickstart-file-res.xml")
-	utils.FailOnError(t, err)
-
-	ksf := KickstartFile{
-		Name: "foo",
+	ks := KickstartFile{
+		Name: "/var/lib/cobbler/kickstarts/foo.ks",
 		Body: "sample content",
 	}
 
-	hc := utils.NewStubHTTPClient(t)
-	hc.Expected = expectedReq
-	hc.Response = response
-	cobblerClient := NewClient(hc, config)
-	cobblerClient.token = "kirby123"
-	ok, err := cobblerClient.CreateKickstartFile(&ksf)
+	result, err := c.CreateKickstartFile(&ks)
 	utils.FailOnError(t, err)
 
-	if !ok {
-		t.Errorf("true expected but got false")
+	if !result {
+		t.Errorf("Kickstart creation failed.")
 	}
 }
 
-func TestCreateKickstartFileWithError(t *testing.T) {
-	expectedReq, err := utils.Fixture("create-kickstart-file-req.xml")
-	utils.FailOnError(t, err)
+func TestGetKickstartFile(t *testing.T) {
+	ksName := "/var/lib/cobbler/kickstarts/foo.ks"
 
-	response, err := utils.Fixture("create-kickstart-file-res-err.xml")
-	utils.FailOnError(t, err)
+	c := createStubHTTPClient(t, "get-kickstart-file-req.xml", "get-kickstart-file-res.xml")
 
-	ksf := KickstartFile{
-		Name: "foo",
+	expectedKS := KickstartFile{
+		Name: ksName,
 		Body: "sample content",
 	}
 
-	hc := utils.NewStubHTTPClient(t)
-	hc.Expected = expectedReq
-	hc.Response = response
-	cobblerClient := NewClient(hc, config)
-	cobblerClient.token = "kirby123"
-	ok, err := cobblerClient.CreateKickstartFile(&ksf)
+	returnedKS, err := c.GetKickstartFile(ksName)
 	utils.FailOnError(t, err)
 
-	if ok {
-		t.Errorf("false expected but got true")
+	if returnedKS.Body != expectedKS.Body {
+		t.Errorf("Kickstart Body did not match.")
 	}
 }

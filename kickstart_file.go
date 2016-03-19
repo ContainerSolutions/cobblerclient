@@ -21,18 +21,28 @@ type KickstartFile struct {
 	Body string // The contents of the kickstart file
 }
 
-/*
 // Creates a kickstart file in Cobbler.
-// Returns true/false and returns an optional error in case
-// that anything goes wrong.
+// Takes a KickstartFile struct as input.
+// Returns true/false and error if creation failed.
 func (c *Client) CreateKickstartFile(f *KickstartFile) (bool, error) {
-	body := tplCreateKickstartFile(f.Name, f.Body, c.token)
-	res, err := c.post(body)
+	result, err := c.Call("read_or_write_kickstart_template", f.Name, false, f.Body, c.Token)
+	return result.(bool), err
+}
+
+// Gets a kickstart file in Cobbler.
+// Takes a kickstart file name as input.
+// Returns *KickstartFile and error if read failed.
+func (c *Client) GetKickstartFile(ksName string) (*KickstartFile, error) {
+	result, err := c.Call("read_or_write_kickstart_template", ksName, true, "", c.Token)
 
 	if err != nil {
-		return false, err
+		return nil, err
 	}
 
-	return boolFromResponse(res)
+	ks := KickstartFile{
+		Name: ksName,
+		Body: result.(string),
+	}
+
+	return &ks, nil
 }
-*/
