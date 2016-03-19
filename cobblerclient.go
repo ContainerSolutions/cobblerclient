@@ -35,7 +35,7 @@ type HTTPClient interface {
 type Client struct {
 	httpClient HTTPClient
 	config     ClientConfig
-	token      string
+	Token      string
 }
 
 type ClientConfig struct {
@@ -91,7 +91,7 @@ func (c *Client) Login() (bool, error) {
 		return false, err
 	}
 
-	c.token = result.(string)
+	c.Token = result.(string)
 	return true, nil
 }
 
@@ -99,7 +99,7 @@ func (c *Client) Login() (bool, error) {
 // Returns true if the sync was successful, or false if it was not.
 // Returns an error if anything went wrong
 func (c *Client) Sync() (bool, error) {
-	_, err := c.Call("sync", c.token)
+	_, err := c.Call("sync", c.Token)
 	if err != nil {
 		return false, err
 	}

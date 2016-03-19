@@ -133,7 +133,7 @@ type System struct {
 func (c *Client) GetSystems() ([]System, error) {
 	var systems []System
 
-	result, err := c.Call("get_systems", "", c.token)
+	result, err := c.Call("get_systems", "", c.Token)
 	if err != nil {
 		return nil, err
 	}
@@ -153,7 +153,7 @@ func (c *Client) GetSystems() ([]System, error) {
 func (c *Client) GetSystem(name string) (*System, error) {
 	var system System
 
-	result, err := c.Call("get_system", name, c.token)
+	result, err := c.Call("get_system", name, c.Token)
 	if err != nil {
 		return &system, err
 	}
@@ -220,7 +220,7 @@ func (c *Client) CreateSystem(system CreateSystemOpts) (*System, error) {
 	}
 
 	// To create a system via the Cobbler API, first call new_system to obtain an ID
-	result, err := c.Call("new_system", c.token)
+	result, err := c.Call("new_system", c.Token)
 	if err != nil {
 		return nil, err
 	}
@@ -262,7 +262,7 @@ func (c *Client) CreateSystem(system CreateSystemOpts) (*System, error) {
 		}
 	}
 
-	if _, err := c.Call("save_system", newId, c.token); err != nil {
+	if _, err := c.Call("save_system", newId, c.Token); err != nil {
 		return nil, err
 	}
 
@@ -271,7 +271,7 @@ func (c *Client) CreateSystem(system CreateSystemOpts) (*System, error) {
 
 // UpdateSystemField updates a single field in a given system.
 func (c *Client) UpdateSystemField(systemId, field, value interface{}) error {
-	if result, err := c.Call("modify_system", systemId, field, value, c.token); err != nil {
+	if result, err := c.Call("modify_system", systemId, field, value, c.Token); err != nil {
 		return err
 	} else {
 		if result.(bool) == false {

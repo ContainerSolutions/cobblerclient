@@ -49,7 +49,7 @@ func createStubHTTPClient(t *testing.T, reqFixture string, resFixture string) Cl
 	}
 
 	c := NewClient(hc, config)
-	c.token = "securetoken99"
+	c.Token = "securetoken99"
 	return c
 }
 
@@ -63,8 +63,8 @@ func TestLogin(t *testing.T) {
 	}
 
 	expected := "sa/1EWr40BWU+Pq3VEOOpD4cQtxkeMuFUw=="
-	if c.token != expected {
-		t.Errorf(`"%s" expected; got "%s"`, expected, c.token)
+	if c.Token != expected {
+		t.Errorf(`"%s" expected; got "%s"`, expected, c.Token)
 	}
 }
 

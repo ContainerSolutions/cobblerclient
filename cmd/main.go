@@ -20,6 +20,8 @@ func main() {
 		fmt.Printf("%+v", err)
 	}
 
+	fmt.Printf("Token: %s\n", c.Token)
+
 	systems, err := c.GetSystems()
 	if err != nil {
 		fmt.Printf("%+v", err)
