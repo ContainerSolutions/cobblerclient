@@ -23,51 +23,35 @@ import (
 )
 
 func TestCreateSnippet(t *testing.T) {
-	expectedReq, err := utils.Fixture("create-snippet-req.xml")
-	utils.FailOnError(t, err)
+	c := createStubHTTPClient(t, "create-snippet-req.xml", "create-snippet-res.xml")
 
-	response, err := utils.Fixture("create-snippet-res.xml")
-	utils.FailOnError(t, err)
-
-	s := Snippet{
-		Name: "some-snippet",
+	snippet := Snippet{
+		Name: "/var/lib/cobbler/snippets/some-snippet",
 		Body: "sample content",
 	}
 
-	hc := utils.NewStubHTTPClient(t)
-	hc.Expected = expectedReq
-	hc.Response = response
-	cobblerClient := NewClient(hc, config)
-	cobblerClient.token = "kirby123"
-	ok, err := cobblerClient.CreateSnippet(&s)
+	result, err := c.CreateSnippet(&snippet)
 	utils.FailOnError(t, err)
 
-	if !ok {
-		t.Errorf("true expected but got false")
+	if !result {
+		t.Errorf("Snippet creation failed.")
 	}
 }
 
-func TestCreateSnippetWithError(t *testing.T) {
-	expectedReq, err := utils.Fixture("create-snippet-req.xml")
-	utils.FailOnError(t, err)
+func TestGetSnippet(t *testing.T) {
+	snippetName := "/var/lib/cobbler/snippets/some-snippet"
 
-	response, err := utils.Fixture("create-snippet-res-err.xml")
-	utils.FailOnError(t, err)
+	c := createStubHTTPClient(t, "get-snippet-req.xml", "get-snippet-res.xml")
 
-	s := Snippet{
-		Name: "some-snippet",
+	expectedSnippet := Snippet{
+		Name: snippetName,
 		Body: "sample content",
 	}
 
-	hc := utils.NewStubHTTPClient(t)
-	hc.Expected = expectedReq
-	hc.Response = response
-	cobblerClient := NewClient(hc, config)
-	cobblerClient.token = "kirby123"
-	ok, err := cobblerClient.CreateSnippet(&s)
+	returnedSnippet, err := c.GetSnippet(snippetName)
 	utils.FailOnError(t, err)
 
-	if ok {
-		t.Errorf("false expected but got true")
+	if returnedSnippet.Body != expectedSnippet.Body {
+		t.Errorf("Snippet Body did not match.")
 	}
 }
