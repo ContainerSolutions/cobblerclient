@@ -22,8 +22,11 @@ import (
 	"io"
 	"io/ioutil"
 	"net/http"
+	"reflect"
+	"strings"
 
 	"github.com/kolo/xmlrpc"
+	"github.com/mitchellh/mapstructure"
 )
 
 const bodyTypeXML = "text/xml"
@@ -105,4 +108,95 @@ func (c *Client) Sync() (bool, error) {
 	}
 
 	return true, nil
+}
+
+// GetItemHandle gets the internal ID of a Cobbler item.
+func (c *Client) GetItemHandle(what, name string) (string, error) {
+	result, err := c.Call("get_item_handle", what, name, c.Token)
+	if err != nil {
+		return "", err
+	} else {
+		return result.(string), err
+	}
+}
+
+// cobblerDataHacks is a hook for the mapstructure decoder.
+// It's used to smooth out issues with converting fields and types from Cobbler.
+func cobblerDataHacks(f, t reflect.Kind, data interface{}) (interface{}, error) {
+	dataVal := reflect.ValueOf(data)
+
+	// Cobbler uses ~ internally to mean None/nil
+	if dataVal.String() == "~" {
+		return map[string]interface{}{}, nil
+	}
+
+	if f == reflect.Int64 && t == reflect.Bool {
+		if dataVal.Int() > 0 {
+			return true, nil
+		} else {
+			return false, nil
+		}
+	}
+	return data, nil
+}
+
+// decodeCobblerItem is a custom mapstructure decoder to handler Cobbler's uniqueness.
+func decodeCobblerItem(raw interface{}, result interface{}) (interface{}, error) {
+	var metadata mapstructure.Metadata
+	decoder, err := mapstructure.NewDecoder(&mapstructure.DecoderConfig{
+		Metadata:         &metadata,
+		Result:           result,
+		WeaklyTypedInput: true,
+		DecodeHook:       cobblerDataHacks,
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	if err := decoder.Decode(raw); err != nil {
+		return nil, err
+	}
+
+	return result, nil
+}
+
+// updateCobblerFields updates all fields in a Cobbler Item structure.
+func (c *Client) updateCobblerFields(what string, item reflect.Value, id string) error {
+	method := fmt.Sprintf("modify_%s", what)
+
+	typeOfT := item.Type()
+	for i := 0; i < item.NumField(); i++ {
+		v := item.Field(i)
+		tag := typeOfT.Field(i).Tag
+		field := tag.Get("mapstructure")
+		cobblerTag := tag.Get("cobbler")
+
+		if cobblerTag == "noupdate" {
+			continue
+		}
+
+		if field == "" {
+			continue
+		}
+
+		var value interface{}
+		switch v.Type().String() {
+		case "string", "bool", "int64", "int":
+			value = v.Interface()
+		case "[]string":
+			value = strings.Join(v.Interface().([]string), " ")
+		}
+
+		//fmt.Printf("%s, %s, %s\n", id, field, value)
+		if result, err := c.Call(method, id, field, value, c.Token); err != nil {
+			return err
+		} else {
+			if result.(bool) == false {
+				return fmt.Errorf("Error updating %s to %s.", field, value)
+			}
+		}
+	}
+
+	return nil
 }

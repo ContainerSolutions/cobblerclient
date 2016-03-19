@@ -1,3 +1,4 @@
+<?xml version="1.0" encoding="UTF-8"?>
 <methodCall>
   <methodName>get_distro</methodName>
   <params>
@@ -13,4 +14,3 @@
     </param>
   </params>
 </methodCall>
-

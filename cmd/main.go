@@ -13,6 +13,43 @@ var config = cobbler.ClientConfig{
 	Password: "password",
 }
 
+func distro_tests(c cobbler.Client) error {
+	d := cobbler.Distro{
+		Name:      "Test",
+		Breed:     "Ubuntu",
+		OSVersion: "trusty",
+		Arch:      "x86_64",
+		Kernel:    "/var/www/cobbler/ks_mirror/Ubuntu-14.04/install/netboot/ubuntu-installer/amd64/linux",
+		Initrd:    "/var/www/cobbler/ks_mirror/Ubuntu-14.04/install/netboot/ubuntu-installer/amd64/initrd.gz",
+	}
+
+	fmt.Println("Creating Distro")
+	newDistro, err := c.CreateDistro(d)
+	if err != nil {
+		return err
+	}
+
+	fmt.Printf("New Distro: %+v\n", newDistro)
+
+	if newDistro.Name != "Test" {
+		return fmt.Errorf("Distro name does not match.")
+	}
+
+	fmt.Println("Updating Distro")
+	newDistro.Comment = "Update Test"
+	if err := c.UpdateDistro(newDistro); err != nil {
+		return err
+	}
+
+	fmt.Println("Deleting Distro")
+	_, err = c.DeleteDistro("Test")
+	if err != nil {
+		fmt.Printf("\n%+v\n", err)
+	}
+
+	return nil
+}
+
 func main() {
 	c := cobbler.NewClient(http.DefaultClient, config)
 	_, err := c.Login()
@@ -22,43 +59,49 @@ func main() {
 
 	fmt.Printf("Token: %s\n", c.Token)
 
-	systems, err := c.GetSystems()
-	if err != nil {
-		fmt.Printf("%+v", err)
+	if err := distro_tests(c); err != nil {
+		fmt.Println(err)
 	}
 
-	fmt.Printf("%+v\n", systems)
+	/*
+		systems, err := c.GetSystems()
+		if err != nil {
+			fmt.Printf("%+v", err)
+		}
 
-	system, err := c.GetSystem("test")
-	if err != nil {
-		fmt.Printf("%+v", err)
-	}
+		fmt.Printf("%+v\n", systems)
 
-	fmt.Printf("%+v\n", system)
+		system, err := c.GetSystem("test")
+		if err != nil {
+			fmt.Printf("%+v", err)
+		}
 
-	eth0 := map[string]interface{}{
-		"mac_address": "aa:bb:cc:dd:ee:ff",
-		"static":      true,
-	}
+		fmt.Printf("%+v\n", system)
 
-	s := cobbler.CreateSystemOpts{
-		Comment:     "WTF",
-		Name:        "Foobar",
-		Profile:     "Ubuntu-14.04-x86_64",
-		NameServers: []string{"8.8.8.8", "1.1.1.1"},
-		PowerID:     "foo",
-		Interfaces: map[string]interface{}{
-			"eth0": eth0,
-		},
-	}
+		eth0 := map[string]interface{}{
+			"mac_address": "aa:bb:cc:dd:ee:ff",
+			"static":      true,
+		}
 
-	ns, err := c.CreateSystem(s)
-	if err != nil {
-		fmt.Printf("\n%+v\n", err)
-	}
+		s := cobbler.CreateSystemOpts{
+			Comment:     "WTF",
+			Name:        "Foobar",
+			Profile:     "Ubuntu-14.04-x86_64",
+			NameServers: []string{"8.8.8.8", "1.1.1.1"},
+			PowerID:     "foo",
+			Interfaces: map[string]interface{}{
+				"eth0": eth0,
+			},
+		}
 
-	fmt.Printf("\n%+v\n", ns)
+		ns, err := c.CreateSystem(s)
+		if err != nil {
+			fmt.Printf("\n%+v\n", err)
+		}
 
-	neth0 := ns.Interfaces["eth0"].(map[string]interface{})
-	fmt.Printf("\n%s\n", neth0["mac_address"])
+		fmt.Printf("\n%+v\n", ns)
+
+		neth0 := ns.Interfaces["eth0"].(map[string]interface{})
+		fmt.Printf("\n%s\n", neth0["mac_address"])
+	*/
 }
