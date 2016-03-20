@@ -24,7 +24,7 @@ type KickstartFile struct {
 // Creates a kickstart file in Cobbler.
 // Takes a KickstartFile struct as input.
 // Returns true/false and error if creation failed.
-func (c *Client) CreateKickstartFile(f *KickstartFile) (bool, error) {
+func (c *Client) CreateKickstartFile(f KickstartFile) (bool, error) {
 	result, err := c.Call("read_or_write_kickstart_template", f.Name, false, f.Body, c.Token)
 	return result.(bool), err
 }
@@ -45,4 +45,17 @@ func (c *Client) GetKickstartFile(ksName string) (*KickstartFile, error) {
 	}
 
 	return &ks, nil
+}
+
+// Deletes a kickstart file in Cobbler.
+// Takes a kickstart file name as input.
+// Returns error if delete failed.
+func (c *Client) DeleteKickstartFile(name string) error {
+	_, err := c.Call("read_or_write_kickstart_template", name, false, -1, c.Token)
+
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

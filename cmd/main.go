@@ -153,4 +153,20 @@ func main() {
 		fmt.Println(err)
 	}
 
+	fmt.Println("Creating a Kickstart")
+	ks := cobbler.KickstartFile{
+		Name: "/var/lib/cobbler/kickstarts/foo.ks",
+		Body: "sample content",
+	}
+
+	_, err = c.CreateKickstartFile(ks)
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	fmt.Println("Deleting a Kickstart")
+	if err := c.DeleteKickstartFile("/var/lib/cobbler/kickstarts/foo.ks"); err != nil {
+		fmt.Println(err)
+	}
+
 }
