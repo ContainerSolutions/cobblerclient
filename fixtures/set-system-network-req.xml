@@ -1,3 +1,4 @@
+<?xml version="1.0" encoding="UTF-8"?>
 <methodCall>
   <methodName>modify_system</methodName>
   <params>
@@ -49,7 +50,7 @@
     </param>
     <param>
       <value>
-        <string>abc123==</string>
+        <string>securetoken99</string>
       </value>
     </param>
   </params>

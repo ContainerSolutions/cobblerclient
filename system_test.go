@@ -42,11 +42,71 @@ func TestGetSystem(t *testing.T) {
 	}
 }
 
-/*
- * NOTE: We're skipping the testing of CREATE, UPDATE, DELETE methods for now because
- *       the current implementation of the StubHTTPClient does not allow
- *       buffered mock responses so as soon as the method makes the second
- *       call to Cobbler it'll fail.
- *       This is a system test, so perhaps we can run Cobbler in a Docker container
- *       and take it from there.
- */
+func TestNewSystem(t *testing.T) {
+	c := createStubHTTPClient(t, "new-system-req.xml", "new-system-res.xml")
+	result, err := c.Call("new_system", c.Token)
+	utils.FailOnError(t, err)
+	newId := result.(string)
+
+	if newId != "___NEW___system::abc123==" {
+		t.Errorf("Wrong ID returned.")
+	}
+
+	c = createStubHTTPClient(t, "set-system-hostname-req.xml", "set-system-hostname-res.xml")
+	result, err = c.Call("modify_system", newId, "hostname", "blahhost", c.Token)
+	utils.FailOnError(t, err)
+
+	if !result.(bool) {
+		t.Errorf("Setting hostname failed.")
+	}
+
+	c = createStubHTTPClient(t, "set-system-name-req.xml", "set-system-name-res.xml")
+	result, err = c.Call("modify_system", newId, "name", "mytestsystem", c.Token)
+	utils.FailOnError(t, err)
+
+	if !result.(bool) {
+		t.Errorf("Setting name failed.")
+	}
+
+	c = createStubHTTPClient(t, "set-system-nameservers-req.xml", "set-system-nameservers-res.xml")
+	result, err = c.Call("modify_system", newId, "name_servers", "8.8.8.8 8.8.4.4", c.Token)
+	utils.FailOnError(t, err)
+
+	if !result.(bool) {
+		t.Errorf("Setting name servers failed.")
+	}
+
+	c = createStubHTTPClient(t, "set-system-profile-req.xml", "set-system-profile-res.xml")
+	result, err = c.Call("modify_system", newId, "profile", "centos7-x86_64", c.Token)
+	utils.FailOnError(t, err)
+
+	if !result.(bool) {
+		t.Errorf("Setting name servers failed.")
+	}
+
+	/* I'm not sure how to get this test to pass with unordered maps
+	nicInfo := map[string]interface{}{
+		"macaddress-eth0":  "01:02:03:04:05:06",
+		"ipaddress-eth0":   "1.2.3.4",
+		"dnsname-eth0":     "deathstar",
+		"subnetsmask-eth0": "255.255.255.0",
+		"if-gateway-eth0":  "4.3.2.1",
+	}
+
+	c = createStubHTTPClient(t, "set-system-network-req.xml", "set-system-network-res.xml")
+	result, err = c.Call("modify_system", newId, "modify_interface", nicInfo, c.Token)
+	utils.FailOnError(t, err)
+
+	if !result.(bool) {
+		t.Errorf("Setting interface failed.")
+	}
+	*/
+
+	c = createStubHTTPClient(t, "save-system-req.xml", "save-system-res.xml")
+	result, err = c.Call("save_system", newId, c.Token)
+	utils.FailOnError(t, err)
+
+	if !result.(bool) {
+		t.Errorf("Save failed.")
+	}
+}

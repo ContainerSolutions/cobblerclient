@@ -1,9 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
 <methodCall>
   <methodName>modify_system</methodName>
   <params>
     <param>
       <value>
-        <string>___NEW___system::c3po</string>
+        <string>___NEW___system::abc123==</string>
       </value>
     </param>
     <param>
@@ -18,7 +19,7 @@
     </param>
     <param>
       <value>
-        <string>abc123</string>
+        <string>securetoken99</string>
       </value>
     </param>
   </params>
