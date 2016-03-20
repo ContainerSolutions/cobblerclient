@@ -52,8 +52,8 @@ type Distro struct {
 }
 
 // GetDistros returns all systems in Cobbler.
-func (c *Client) GetDistros() ([]Distro, error) {
-	var distros []Distro
+func (c *Client) GetDistros() ([]*Distro, error) {
+	var distros []*Distro
 
 	result, err := c.Call("get_distros", "-1", c.Token)
 	if err != nil {
@@ -62,12 +62,12 @@ func (c *Client) GetDistros() ([]Distro, error) {
 
 	for _, d := range result.([]interface{}) {
 		var distro Distro
-		if result, err := decodeCobblerItem(d, &distro); err != nil {
+		decodedResult, err := decodeCobblerItem(d, &distro)
+		if err != nil {
 			return nil, err
-		} else {
-			distro = result.(Distro)
 		}
-		distros = append(distros, distro)
+
+		distros = append(distros, decodedResult.(*Distro))
 	}
 
 	return distros, nil

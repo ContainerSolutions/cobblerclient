@@ -109,8 +109,8 @@ type Interface struct {
 type Interfaces map[string]Interface
 
 // GetSystems returns all systems in Cobbler.
-func (c *Client) GetSystems() ([]System, error) {
-	var systems []System
+func (c *Client) GetSystems() ([]*System, error) {
+	var systems []*System
 
 	result, err := c.Call("get_systems", "", c.Token)
 	if err != nil {
@@ -119,13 +119,13 @@ func (c *Client) GetSystems() ([]System, error) {
 
 	for _, s := range result.([]interface{}) {
 		var system System
-		if result, err := decodeCobblerItem(s, &system); err != nil {
+		decodedResult, err := decodeCobblerItem(s, &system)
+		if err != nil {
 			return nil, err
-		} else {
-			system = result.(System)
 		}
-		system.Client = *c
-		systems = append(systems, system)
+		decodedSystem := decodedResult.(*System)
+		decodedSystem.Client = *c
+		systems = append(systems, decodedSystem)
 	}
 
 	return systems, nil
@@ -152,7 +152,7 @@ func (c *Client) GetSystem(name string) (*System, error) {
 	s := decodeResult.(*System)
 	s.Client = *c
 
-	return decodeResult.(*System), nil
+	return s, nil
 }
 
 // CreateSystem creates a system.
