@@ -137,4 +137,20 @@ func main() {
 		fmt.Printf("Error deleting system: %s\n", err)
 	}
 
+	fmt.Println("Creating a Snippet")
+	snippet := cobbler.Snippet{
+		Name: "/var/lib/cobbler/snippets/some-snippet",
+		Body: "sample content",
+	}
+
+	_, err = c.CreateSnippet(snippet)
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	fmt.Println("Deleting a Snippet")
+	if err := c.DeleteSnippet("/var/lib/cobbler/snippets/some-snippet"); err != nil {
+		fmt.Println(err)
+	}
+
 }
