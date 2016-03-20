@@ -19,70 +19,20 @@ package cobblerclient
 import (
 	"fmt"
 	"reflect"
-	"strings"
 
+	"github.com/fatih/structs"
 	"github.com/mitchellh/mapstructure"
 )
-
-// CreateSystemOpts contains fields to set for a new system
-type CreateSystemOpts struct {
-	BootFiles                string   `mapstructure:"boot_files"`
-	Comment                  string   `mapstructure:"comment"`
-	EnableGPXE               bool     `mapstructure:"enable_gpxe"`
-	FetchableFiles           string   `mapstructure:"fetchable_files"`
-	Gateway                  string   `mapstructure:"gateway"`
-	Hostname                 string   `mapstructure:"hostname"`
-	Image                    string   `mapstructure:"image"`
-	IPv6DefaultDevice        string   `mapstructure:"ipv6_default_device"`
-	KernelOptions            string   `mapstructure:"kernel_options"`
-	KernelOptionsPost        string   `mapstructure:"kernel_options_post"`
-	Kickstart                string   `mapstructure:"kickstart"`
-	KSMeta                   string   `mapstructure:"ks_meta"`
-	LDAPEnabled              bool     `mapstructure:"ldap_enabled"`
-	LDAPType                 string   `mapstructure:"ldap_type"`
-	MGMTClasses              []string `mapstructure:"mgmt_classes"`
-	MGMTParameters           string   `mapstructure:"mgmt_parameters"`
-	MonitEnabled             bool     `mapstructure:"monit_enabled"`
-	Name                     string   `mapstructure:"name"`
-	NameServersSearch        []string `mapstructure:"name_servers_search"`
-	NameServers              []string `mapstructure:"name_servers"`
-	NetbootEnabled           bool     `mapstructure:"netboot_enabled"`
-	Owners                   []string `mapstructure:"owners"`
-	PowerAddress             string   `mapstructure:"power_address"`
-	PowerID                  string   `mapstructure:"power_id"`
-	PowerPass                string   `mapstructure:"power_pass"`
-	PowerType                string   `mapstructure:"power_type"`
-	PowerUser                string   `mapstructure:"power_user"`
-	Profile                  string   `mapstructure:"profile"`
-	Proxy                    string   `mapstructure:"proxy"`
-	RedHatManagementKey      string   `mapstructure:"redhat_management_key"`
-	RedhatManagementServer   string   `mapstructure:"redhat_management_server"`
-	Status                   string   `mapstructure:"status"`
-	TemplateFiles            string   `mapstructure:"template_files"`
-	TemplateRemoteKickstarts int      `mapstructure:"template_remote_kickstarts"`
-	VirtAutoBoot             string   `mapstructure:"virt_auto_boot"`
-	VirtFileSize             string   `mapstructure:"virt_file_size"`
-	VirtCPUs                 string   `mapstructure:"virt_cpus"`
-	VirtType                 string   `mapstructure:"virt_type"`
-	VirtPath                 string   `mapstructure:"virt_path"`
-	VirtPXEBoot              int      `mapstructure:"virt_pxe_boot"`
-	VirtRam                  string   `mapstructure:"virt_ram"`
-	VirtDiskDriver           string   `mapstructure:"virt_disk_driver"`
-
-	// There can't be a proper Interface struct because of how
-	// Cobbler mangles the interface attribute name to "netmask-eth0"
-	Interfaces map[string]interface{} `mapstructure:"interfaces"`
-}
 
 // System is a created system.
 type System struct {
 	// These are internal fields and cannot be modified.
-	Ctime                 float64 `mapstructure:"ctime"` // TODO: convert to time
-	Depth                 int     `mapstructure:"depth"`
-	ID                    string  `mapstructure:"uid"`
-	IPv6Autoconfiguration bool    `mapstructure:"ipv6_autoconfiguration"`
-	Mtime                 float64 `mapstructure:"mtime"` // TODO: convert to time
-	ReposEnabled          bool    `mapstructure:"repos_enabled"`
+	Ctime                 float64 `mapstructure:"ctime"                  cobbler:"noupdate"` // TODO: convert to time
+	Depth                 int     `mapstructure:"depth"                  cobbler:"noupdate"`
+	ID                    string  `mapstructure:"uid"                    cobbler:"noupdate"`
+	IPv6Autoconfiguration bool    `mapstructure:"ipv6_autoconfiguration" cobbler:"noupdate"`
+	Mtime                 float64 `mapstructure:"mtime"                  cobbler:"noupdate"` // TODO: convert to time
+	ReposEnabled          bool    `mapstructure:"repos_enabled"          cobbler:"noupdate"`
 
 	BootFiles                string                 `mapstructure:"boot_files"`
 	Comment                  string                 `mapstructure:"comment"`
@@ -91,7 +41,7 @@ type System struct {
 	Gateway                  string                 `mapstructure:"gateway"`
 	Hostname                 string                 `mapstructure:"hostname"`
 	Image                    string                 `mapstructure:"image"`
-	Interfaces               map[string]interface{} `mapstructure:"interfaces"`
+	Interfaces               map[string]interface{} `mapstructure:"interfaces" cobbler:"noupdate"`
 	IPv6DefaultDevice        string                 `mapstructure:"ipv6_default_device"`
 	KernelOptions            string                 `mapstructure:"kernel_options"`
 	KernelOptionsPost        string                 `mapstructure:"kernel_options_post"`
@@ -127,7 +77,36 @@ type System struct {
 	VirtPXEBoot              int                    `mapstructure:"virt_pxe_boot"`
 	VirtRam                  string                 `mapstructure:"virt_ram"`
 	VirtDiskDriver           string                 `mapstructure:"virt_disk_driver"`
+
+	Client
 }
+
+// Interface is an interface in a system.
+type Interface struct {
+	CNAMEs             []string `mapstructure:"cnames" structs:"cnames"`
+	DHCPTag            string   `mapstructure:"dhcp_tag" structs:"dhcp_tag"`
+	DNSName            string   `mapstructure:"dns_name" structs:"dns_name"`
+	BondingOpts        string   `mapstructure:"bonding_opts" structs:"bonding_opts"`
+	BridgeOpts         string   `mapstructure:"bridge_opts" structs:"bridge_opts"`
+	Gateway            string   `mapstructure:"if_gateway" structs:"if_gateway"`
+	InterfaceType      string   `mapstructure:"interface_type" structs:"interface_type"`
+	InterfaceMaster    string   `mapstructure:"interface_master" structs:"interface_master"`
+	IPAddress          string   `mapstructure:"ip_address" structs:"ip_address"`
+	IPv6Address        string   `mapstructure:"ipv6_address" structs:"ipv6_address"`
+	IPv6Secondaries    []string `mapstructure:"ipv6_secondaries" structs:"ipv6_secondaries"`
+	IPv6MTU            string   `mapstructure:"ipv6_mtu" structs:"ipv6_mtu"`
+	IPv6StaticRoutes   []string `mapstructure:"ipv6_static_routes" structs:"ipv6_static_routes"`
+	IPv6DefaultGateway string   `mapstructure:"ipv6_default_gateway structs:"ipv6_default_gateway"`
+	MACAddress         string   `mapstructure:"mac_address" structs:"mac_address"`
+	Mangement          bool     `mapstructure:"management" structs:"managment"`
+	Netmask            string   `mapstructure:"netmask" structs:"netmask"`
+	Static             bool     `mapstructure:"static" structs:"static"`
+	StaticRoutes       []string `mapstructure:"static_routes" structs:"static_routes"`
+	VirtBridge         string   `mapstructure:"virt_bridge" structs:"virt_bridge"`
+}
+
+// Interfaces is a collection of interfaces in a system.
+type Interfaces map[string]Interface
 
 // GetSystems returns all systems in Cobbler.
 func (c *Client) GetSystems() ([]System, error) {
@@ -140,9 +119,12 @@ func (c *Client) GetSystems() ([]System, error) {
 
 	for _, s := range result.([]interface{}) {
 		var system System
-		if err := decodeSystem(s, &system); err != nil {
+		if result, err := decodeCobblerItem(s, &system); err != nil {
 			return nil, err
+		} else {
+			system = result.(System)
 		}
+		system.Client = *c
 		systems = append(systems, system)
 	}
 
@@ -158,14 +140,29 @@ func (c *Client) GetSystem(name string) (*System, error) {
 		return &system, err
 	}
 
-	err = decodeSystem(result, &system)
+	if result == "~" {
+		return nil, fmt.Errorf("System %s not found.", name)
+	}
 
-	return &system, err
+	decodeResult, err := decodeCobblerItem(result, &system)
+	if err != nil {
+		return nil, err
+	}
+
+	s := decodeResult.(*System)
+	s.Client = *c
+
+	return decodeResult.(*System), nil
 }
 
 // CreateSystem creates a system.
 // It ensures that either a Profile or Image are set and then sets other default values.
-func (c *Client) CreateSystem(system CreateSystemOpts) (*System, error) {
+func (c *Client) CreateSystem(system System) (*System, error) {
+	// Check if a system with the same name already exists
+	if _, err := c.GetSystem(system.Name); err == nil {
+		return nil, fmt.Errorf("A system with the name %s already exists.", system.Name)
+	}
+
 	if system.Profile == "" && system.Image == "" {
 		return nil, fmt.Errorf("A system must have a profile or image set.")
 	}
@@ -226,96 +223,104 @@ func (c *Client) CreateSystem(system CreateSystemOpts) (*System, error) {
 	}
 	newId := result.(string)
 
-	// Cobbler wants each field to be updated individually.
-	// Also, for some reason, arrays are flattened to space-delimited strings.
-	// Finally, Interface options are passed by a proper struct.
-	s := reflect.ValueOf(&system).Elem()
-	typeOfT := s.Type()
-	for i := 0; i < s.NumField(); i++ {
-		f := s.Field(i)
-		tag := typeOfT.Field(i).Tag
-		cobblerField := tag.Get("mapstructure")
-
-		switch f.Type().String() {
-		case "string", "bool", "int64", "int":
-			if err := c.UpdateSystemField(newId, cobblerField, f.Interface()); err != nil {
-				return nil, err
-			}
-		case "[]string":
-			v := strings.Join(f.Interface().([]string), " ")
-			if err := c.UpdateSystemField(newId, cobblerField, v); err != nil {
-				return nil, err
-			}
-		case "map[string]interface {}":
-			for nicName, nicData := range system.Interfaces {
-				nic := map[string]interface{}{}
-				for k, v := range nicData.(map[string]interface{}) {
-					attrName := fmt.Sprintf("%s-%s", k, nicName)
-					nic[attrName] = v
-				}
-				if err := c.UpdateSystemField(newId, "modify_interface", nic); err != nil {
-					return nil, err
-				}
-			}
-		default:
-			fmt.Printf("%s\n", f.Type().String())
-		}
+	// Set the value of all fields
+	item := reflect.ValueOf(&system).Elem()
+	if err := c.updateCobblerFields("system", item, newId); err != nil {
+		return nil, err
 	}
 
+	// Save the final system
 	if _, err := c.Call("save_system", newId, c.Token); err != nil {
 		return nil, err
 	}
 
+	// Return a clean copy of the system
 	return c.GetSystem(system.Name)
 }
 
-// UpdateSystemField updates a single field in a given system.
-func (c *Client) UpdateSystemField(systemId, field, value interface{}) error {
-	if result, err := c.Call("modify_system", systemId, field, value, c.Token); err != nil {
+// UpdateSystem updates a single system.
+func (c *Client) UpdateSystem(system *System) error {
+	item := reflect.ValueOf(system).Elem()
+	id, err := c.GetItemHandle("system", system.Name)
+	if err != nil {
 		return err
-	} else {
-		if result.(bool) == false {
-			return fmt.Errorf("Error updating %s to %s.", field, value)
-		}
 	}
-
-	return nil
+	return c.updateCobblerFields("system", item, id)
 }
 
-// decodeSystem is a custom mapstructure decoder to handle Cobbler's uniqueness.
-func decodeSystem(raw interface{}, system *System) error {
-	var metadata mapstructure.Metadata
-	decoder, err := mapstructure.NewDecoder(&mapstructure.DecoderConfig{
-		Metadata:         &metadata,
-		Result:           system,
-		WeaklyTypedInput: true,
-		DecodeHook:       systemDataHacks,
-	})
+// DeleteSystem deletes a single system by its name.
+func (c *Client) DeleteSystem(name string) error {
+	_, err := c.Call("remove_system", name, c.Token)
+	return err
+}
 
+func (s *System) CreateInterface(name string, iface Interface) error {
+	i := structs.Map(iface)
+	nic := make(map[string]interface{})
+	for key, value := range i {
+		attrName := fmt.Sprintf("%s-%s", key, name)
+		nic[attrName] = value
+	}
+
+	systemId, err := s.Client.GetItemHandle("system", s.Name)
 	if err != nil {
 		return err
 	}
 
-	if err := decoder.Decode(raw); err != nil {
+	if _, err := s.Client.Call("modify_system", systemId, "modify_interface", nic, s.Client.Token); err != nil {
 		return err
 	}
 
 	return nil
 }
 
-// systemDataHacks is a hook for the mapstructure decoder.
-// It's used to smooth out issues with converting fields and types from Cobbler.
-func systemDataHacks(f, t reflect.Kind, data interface{}) (interface{}, error) {
-	dataVal := reflect.ValueOf(data)
-	if dataVal.String() == "~" {
-		return map[string]interface{}{}, nil
-	}
-	if f == reflect.Int64 && t == reflect.Bool {
-		if dataVal.Int() > 0 {
-			return true, nil
-		} else {
-			return false, nil
+// GetInterfaces returns all interfaces in a System.
+func (s *System) GetInterfaces() (Interfaces, error) {
+	nics := make(Interfaces)
+	for nicName, nicData := range s.Interfaces {
+		var nic Interface
+		if err := mapstructure.Decode(nicData, &nic); err != nil {
+			return nil, err
 		}
+		nics[nicName] = nic
 	}
-	return data, nil
+
+	return nics, nil
+}
+
+// GetInterface returns a single interface in a System.
+func (s *System) GetInterface(name string) (Interface, error) {
+	nics := make(Interfaces)
+	var iface Interface
+	for nicName, nicData := range s.Interfaces {
+		var nic Interface
+		if err := mapstructure.Decode(nicData, &nic); err != nil {
+			return iface, err
+		}
+		nics[nicName] = nic
+	}
+
+	if iface, ok := nics[name]; ok {
+		return iface, nil
+	} else {
+		return iface, fmt.Errorf("Interface %s not found.", name)
+	}
+}
+
+// DeleteInterface deletes a single interface in a System.
+func (s *System) DeleteInterface(name string) error {
+	if _, err := s.GetInterface(name); err != nil {
+		return err
+	}
+
+	systemId, err := s.Client.GetItemHandle("system", s.Name)
+	if err != nil {
+		return err
+	}
+
+	if _, err := s.Client.Call("modify_system", systemId, "delete_interface", name, s.Client.Token); err != nil {
+		return err
+	}
+
+	return nil
 }
