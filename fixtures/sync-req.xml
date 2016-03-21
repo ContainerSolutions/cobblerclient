@@ -3,7 +3,9 @@
   <methodName>sync</methodName>
   <params>
     <param>
-      <value><string>securetoken99</string></value>
+      <value>
+        <string>securetoken99</string>
+      </value>
     </param>
   </params>
 </methodCall>
