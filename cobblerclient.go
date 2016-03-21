@@ -120,7 +120,8 @@ func (c *Client) GetItemHandle(what, name string) (string, error) {
 	}
 }
 
-// cobblerDataHacks is a hook for the mapstructure decoder.
+// cobblerDataHacks is a hook for the mapstructure decoder. It's only used by
+// decodeCobblerItem and should never be invoked directly.
 // It's used to smooth out issues with converting fields and types from Cobbler.
 func cobblerDataHacks(f, t reflect.Kind, data interface{}) (interface{}, error) {
 	dataVal := reflect.ValueOf(data)
