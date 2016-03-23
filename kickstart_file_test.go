@@ -30,12 +30,8 @@ func TestCreateKickstartFile(t *testing.T) {
 		Body: "sample content",
 	}
 
-	result, err := c.CreateKickstartFile(ks)
+	err := c.CreateKickstartFile(ks)
 	utils.FailOnError(t, err)
-
-	if !result {
-		t.Errorf("Kickstart creation failed.")
-	}
 }
 
 func TestGetKickstartFile(t *testing.T) {
