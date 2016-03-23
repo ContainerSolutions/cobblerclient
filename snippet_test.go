@@ -30,12 +30,8 @@ func TestCreateSnippet(t *testing.T) {
 		Body: "sample content",
 	}
 
-	result, err := c.CreateSnippet(snippet)
+	err := c.CreateSnippet(snippet)
 	utils.FailOnError(t, err)
-
-	if !result {
-		t.Errorf("Snippet creation failed.")
-	}
 }
 
 func TestGetSnippet(t *testing.T) {

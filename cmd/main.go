@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"net/http"
 
-	cobbler "github.com/ContainerSolutions/cobblerclient"
+	cobbler "github.com/jtopjian/cobblerclient"
 )
 
 var config = cobbler.ClientConfig{
@@ -143,7 +143,7 @@ func main() {
 		Body: "sample content",
 	}
 
-	_, err = c.CreateSnippet(snippet)
+	err = c.CreateSnippet(snippet)
 	if err != nil {
 		fmt.Println(err)
 	}
@@ -159,7 +159,7 @@ func main() {
 		Body: "sample content",
 	}
 
-	_, err = c.CreateKickstartFile(ks)
+	err = c.CreateKickstartFile(ks)
 	if err != nil {
 		fmt.Println(err)
 	}
