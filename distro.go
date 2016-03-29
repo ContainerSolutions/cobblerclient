@@ -130,7 +130,7 @@ func (c *Client) UpdateDistro(distro *Distro) error {
 }
 
 // DeleteDistro deletes a single distro by its name.
-func (c *Client) DeleteDistro(name string) (bool, error) {
-	result, err := c.Call("remove_distro", name, c.Token)
-	return result.(bool), err
+func (c *Client) DeleteDistro(name string) error {
+	_, err := c.Call("remove_distro", name, c.Token)
+	return err
 }
