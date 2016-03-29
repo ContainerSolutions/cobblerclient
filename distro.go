@@ -44,7 +44,7 @@ type Distro struct {
 	OSVersion              string   `mapstructure:"os_version"`
 	Owners                 []string `mapstructure:"owners"`
 	RedHatManagementKey    string   `mapstructure:"redhat_management_key"`
-	RedhatManagementServer string   `mapstructure:"redhat_management_server"`
+	RedHatManagementServer string   `mapstructure:"redhat_management_server"`
 	TemplateFiles          string   `mapstructure:"template_files"`
 
 	//KSMeta                 string   `mapstructure:"ks_meta"`

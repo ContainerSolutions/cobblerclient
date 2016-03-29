@@ -65,7 +65,7 @@ type System struct {
 	Profile                  string                 `mapstructure:"profile"`
 	Proxy                    string                 `mapstructure:"proxy"`
 	RedHatManagementKey      string                 `mapstructure:"redhat_management_key"`
-	RedhatManagementServer   string                 `mapstructure:"redhat_management_server"`
+	RedHatManagementServer   string                 `mapstructure:"redhat_management_server"`
 	Status                   string                 `mapstructure:"status"`
 	TemplateFiles            string                 `mapstructure:"template_files"`
 	TemplateRemoteKickstarts int                    `mapstructure:"template_remote_kickstarts"`
