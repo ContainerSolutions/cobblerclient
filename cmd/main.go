@@ -49,6 +49,19 @@ func main() {
 		fmt.Printf("Error creating distro: %s\n", err)
 	}
 
+	fmt.Println("Creating a Profile")
+	p := cobbler.Profile{
+		Name:   "Testy",
+		Distro: "Test",
+	}
+
+	newProfile, err := c.CreateProfile(p)
+	if err != nil {
+		fmt.Printf("Error creating profile: %s\n", err)
+	}
+
+	fmt.Printf("New Profile: %+v\n", newProfile)
+
 	fmt.Println("Creating a System")
 	eth0 := cobbler.Interface{
 		MACAddress:    "aa:bb:cc:dd:ee:ff",
@@ -64,7 +77,7 @@ func main() {
 	s := cobbler.System{
 		Comment:     "WTF",
 		Name:        "Foobar",
-		Profile:     "Ubuntu-14.04-x86_64",
+		Profile:     "Testy",
 		NameServers: []string{"8.8.8.8", "1.1.1.1"},
 		PowerID:     "foo",
 	}
@@ -125,16 +138,22 @@ func main() {
 		fmt.Printf("%+v\n", interfaces)
 	}
 
-	fmt.Println("Deleting Distro")
-	_, err = c.DeleteDistro("Test")
-	if err != nil {
-		fmt.Printf("Error deleting distro: %s\n", err)
-	}
-
 	fmt.Println("Deleting System")
 	err = c.DeleteSystem("Foobar")
 	if err != nil {
 		fmt.Printf("Error deleting system: %s\n", err)
+	}
+
+	fmt.Println("Deleting Profile")
+	err = c.DeleteProfile("Testy")
+	if err != nil {
+		fmt.Printf("Error deleting profile: %s\n", err)
+	}
+
+	fmt.Println("Deleting Distro")
+	err = c.DeleteDistro("Test")
+	if err != nil {
+		fmt.Printf("Error deleting distro: %s\n", err)
 	}
 
 	fmt.Println("Creating a Snippet")

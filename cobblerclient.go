@@ -193,7 +193,7 @@ func (c *Client) updateCobblerFields(what string, item reflect.Value, id string)
 		if result, err := c.Call(method, id, field, value, c.Token); err != nil {
 			return err
 		} else {
-			if result.(bool) == false {
+			if result.(bool) == false && value != false {
 				return fmt.Errorf("Error updating %s to %s.", field, value)
 			}
 		}
