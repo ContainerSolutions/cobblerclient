@@ -70,13 +70,13 @@ type System struct {
 	TemplateFiles            string                 `mapstructure:"template_files"`
 	TemplateRemoteKickstarts int                    `mapstructure:"template_remote_kickstarts"`
 	VirtAutoBoot             string                 `mapstructure:"virt_auto_boot"`
-	VirtFileSize             string                 `mapstructure:"virt_file_size"`
 	VirtCPUs                 string                 `mapstructure:"virt_cpus"`
-	VirtType                 string                 `mapstructure:"virt_type"`
+	VirtDiskDriver           string                 `mapstructure:"virt_disk_driver"`
+	VirtFileSize             string                 `mapstructure:"virt_file_size"`
 	VirtPath                 string                 `mapstructure:"virt_path"`
 	VirtPXEBoot              int                    `mapstructure:"virt_pxe_boot"`
 	VirtRam                  string                 `mapstructure:"virt_ram"`
-	VirtDiskDriver           string                 `mapstructure:"virt_disk_driver"`
+	VirtType                 string                 `mapstructure:"virt_type"`
 
 	Client
 }
