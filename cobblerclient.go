@@ -99,15 +99,10 @@ func (c *Client) Login() (bool, error) {
 }
 
 // Sync the system.
-// Returns true if the sync was successful, or false if it was not.
 // Returns an error if anything went wrong
-func (c *Client) Sync() (bool, error) {
+func (c *Client) Sync() error {
 	_, err := c.Call("sync", c.Token)
-	if err != nil {
-		return false, err
-	}
-
-	return true, nil
+	return err
 }
 
 // GetItemHandle gets the internal ID of a Cobbler item.
