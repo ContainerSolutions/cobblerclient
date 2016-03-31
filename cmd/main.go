@@ -99,6 +99,11 @@ func main() {
 		fmt.Println(err)
 	}
 
+	fmt.Println("Syncing the cobbler server")
+	if err := c.Sync(); err != nil {
+		fmt.Println(err)
+	}
+
 	fmt.Println("Getting system")
 	s2, err := c.GetSystem("Foobar")
 	if err != nil {
