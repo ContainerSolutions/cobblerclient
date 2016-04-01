@@ -22,8 +22,11 @@ import (
 	"io"
 	"io/ioutil"
 	"net/http"
+	"reflect"
+	"strings"
 
-	xmlpath "gopkg.in/xmlpath.v2"
+	"github.com/kolo/xmlrpc"
+	"github.com/mitchellh/mapstructure"
 )
 
 const bodyTypeXML = "text/xml"
@@ -35,7 +38,7 @@ type HTTPClient interface {
 type Client struct {
 	httpClient HTTPClient
 	config     ClientConfig
-	token      string
+	Token      string
 }
 
 type ClientConfig struct {
@@ -51,42 +54,16 @@ func NewClient(httpClient HTTPClient, c ClientConfig) Client {
 	}
 }
 
-// Performs a login request to Cobbler using the credentials provided
-// in the configuration in the initializer.
-func (c *Client) Login() (bool, error) {
-	credentials := loginCredentials{c.config.Username, c.config.Password}
-	body := tplLogin(credentials)
-	res, err := c.post(body)
+func (c *Client) Call(method string, args ...interface{}) (interface{}, error) {
+	var result interface{}
+
+	reqBody, err := xmlrpc.EncodeMethodCall(method, args...)
 	if err != nil {
-		return false, err
+		return nil, err
 	}
 
-	token, err := tokenFromResponse(res)
-	if err != nil {
-		return false, nil
-	}
-	c.token = token
-
-	return true, nil
-}
-
-// Sync the system.
-// Returns true if the sync was successful, or false if it was not.
-// Returns an error if anything went wrong
-func (c *Client) Sync() (bool, error) {
-	reqBody := tplSync(c.token)
-	res, err := c.post(reqBody)
-	if err != nil {
-		return false, err
-	}
-
-	return boolFromResponse(res)
-}
-
-// Performs a POST request to the Cobbler server.
-// Returns an HTTP Response and an error tuple. Either can be nil.
-func (c *Client) post(req io.Reader) ([]byte, error) {
-	res, err := c.httpClient.Post(c.config.Url, bodyTypeXML, req)
+	r := fmt.Sprintf("%s\n", string(reqBody))
+	res, err := c.httpClient.Post(c.config.Url, bodyTypeXML, bytes.NewReader([]byte(r)))
 	if err != nil {
 		return nil, err
 	}
@@ -97,78 +74,125 @@ func (c *Client) post(req io.Reader) ([]byte, error) {
 		return nil, err
 	}
 
-	err = errorInCobbler(body)
-	if err != nil {
+	resp := xmlrpc.NewResponse(body)
+	if err := resp.Unmarshal(&result); err != nil {
 		return nil, err
 	}
 
-	return body, nil
-}
-
-// Cobbler's errors come in an XML document which contains
-// both an error code and an error message. This snippet converts
-// that document into a proper Go error object.
-// For more detail on how that document looks like check
-// `./fixtures/login-res-err.xml`
-func errorInCobbler(body []byte) error {
-	path := xmlpath.MustCompile("//member/value")
-	rootNode, err := xmlpath.Parse(bytes.NewBuffer(body))
-	if err != nil {
-		return err
+	if resp.Failed() {
+		return nil, resp.Err()
 	}
 
-	found := 0
-	numberOfNodesToFind := 2
-	elements := make([]string, numberOfNodesToFind)
-	iterator := path.Iter(rootNode)
-
-	for iterator.Next() {
-		if found < numberOfNodesToFind {
-			elements[found] = iterator.Node().String()
-			found++
-		}
-	}
-
-	if found == 2 {
-		return fmt.Errorf("error %s: %s", elements[0], elements[1])
-	}
-
-	return nil
+	return result, nil
 }
 
-// Given a Cobbler's API's XML document this will return the
-// token as a string or an error if anything goes wrong parsing
-// the document, etc.
-func tokenFromResponse(body []byte) (string, error) {
-	return findXPath("//param/value/string", body)
-}
-
-// Given Cobbler's response to a save system call this will return
-// the boolean result of the save call, or false and an error if anything went wrong.
-func boolFromResponse(body []byte) (bool, error) {
-	result, err := findXPath("//param/value/boolean", body)
-
+// Performs a login request to Cobbler using the credentials provided
+// in the configuration in the initializer.
+func (c *Client) Login() (bool, error) {
+	result, err := c.Call("login", c.config.Username, c.config.Password)
 	if err != nil {
 		return false, err
 	}
 
-	return (result == "1"), nil
+	c.Token = result.(string)
+	return true, nil
 }
 
-// Find the given xpath in the given document.
-// params:
-// - xpath: the xpath to look for
-// - doc:   the XML document to inspect. Must be an array of bytes.
-func findXPath(xpath string, doc []byte) (string, error) {
-	path := xmlpath.MustCompile(xpath)
-	rootNode, err := xmlpath.Parse(bytes.NewBuffer(doc))
+// Sync the system.
+// Returns an error if anything went wrong
+func (c *Client) Sync() error {
+	_, err := c.Call("sync", c.Token)
+	return err
+}
+
+// GetItemHandle gets the internal ID of a Cobbler item.
+func (c *Client) GetItemHandle(what, name string) (string, error) {
+	result, err := c.Call("get_item_handle", what, name, c.Token)
 	if err != nil {
 		return "", err
+	} else {
+		return result.(string), err
+	}
+}
+
+// cobblerDataHacks is a hook for the mapstructure decoder. It's only used by
+// decodeCobblerItem and should never be invoked directly.
+// It's used to smooth out issues with converting fields and types from Cobbler.
+func cobblerDataHacks(f, t reflect.Kind, data interface{}) (interface{}, error) {
+	dataVal := reflect.ValueOf(data)
+
+	// Cobbler uses ~ internally to mean None/nil
+	if dataVal.String() == "~" {
+		return map[string]interface{}{}, nil
 	}
 
-	if value, ok := path.String(rootNode); ok {
-		return value, nil
+	if f == reflect.Int64 && t == reflect.Bool {
+		if dataVal.Int() > 0 {
+			return true, nil
+		} else {
+			return false, nil
+		}
+	}
+	return data, nil
+}
+
+// decodeCobblerItem is a custom mapstructure decoder to handler Cobbler's uniqueness.
+func decodeCobblerItem(raw interface{}, result interface{}) (interface{}, error) {
+	var metadata mapstructure.Metadata
+	decoder, err := mapstructure.NewDecoder(&mapstructure.DecoderConfig{
+		Metadata:         &metadata,
+		Result:           result,
+		WeaklyTypedInput: true,
+		DecodeHook:       cobblerDataHacks,
+	})
+
+	if err != nil {
+		return nil, err
 	}
 
-	return "", fmt.Errorf("node blank or not found\n%s", rootNode.String())
+	if err := decoder.Decode(raw); err != nil {
+		return nil, err
+	}
+
+	return result, nil
+}
+
+// updateCobblerFields updates all fields in a Cobbler Item structure.
+func (c *Client) updateCobblerFields(what string, item reflect.Value, id string) error {
+	method := fmt.Sprintf("modify_%s", what)
+
+	typeOfT := item.Type()
+	for i := 0; i < item.NumField(); i++ {
+		v := item.Field(i)
+		tag := typeOfT.Field(i).Tag
+		field := tag.Get("mapstructure")
+		cobblerTag := tag.Get("cobbler")
+
+		if cobblerTag == "noupdate" {
+			continue
+		}
+
+		if field == "" {
+			continue
+		}
+
+		var value interface{}
+		switch v.Type().String() {
+		case "string", "bool", "int64", "int":
+			value = v.Interface()
+		case "[]string":
+			value = strings.Join(v.Interface().([]string), " ")
+		}
+
+		//fmt.Printf("%s, %s, %s\n", id, field, value)
+		if result, err := c.Call(method, id, field, value, c.Token); err != nil {
+			return err
+		} else {
+			if result.(bool) == false && value != false {
+				return fmt.Errorf("Error updating %s to %s.", field, value)
+			}
+		}
+	}
+
+	return nil
 }

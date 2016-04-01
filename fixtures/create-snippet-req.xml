@@ -1,3 +1,4 @@
+<?xml version="1.0" encoding="UTF-8"?>
 <methodCall>
   <methodName>read_or_write_snippet</methodName>
   <params>
@@ -18,7 +19,7 @@
     </param>
     <param>
       <value>
-        <string>kirby123</string>
+        <string>securetoken99</string>
       </value>
     </param>
   </params>

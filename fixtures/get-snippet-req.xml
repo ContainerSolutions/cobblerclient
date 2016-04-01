@@ -1,20 +1,20 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <methodCall>
-  <methodName>read_or_write_kickstart_template</methodName>
+  <methodName>read_or_write_snippet</methodName>
   <params>
     <param>
       <value>
-        <string>/var/lib/cobbler/kickstarts/foo.ks</string>
+        <string>/var/lib/cobbler/snippets/some-snippet</string>
       </value>
     </param>
     <param>
       <value>
-        <boolean>0</boolean>
+        <boolean>1</boolean>
       </value>
     </param>
     <param>
       <value>
-        <string>sample content</string>
+        <string></string>
       </value>
     </param>
     <param>

@@ -9,12 +9,12 @@
     </param>
     <param>
       <value>
-        <boolean>0</boolean>
+        <boolean>1</boolean>
       </value>
     </param>
     <param>
       <value>
-        <string>sample content</string>
+        <string></string>
       </value>
     </param>
     <param>

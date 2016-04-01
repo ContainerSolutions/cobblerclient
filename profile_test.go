@@ -22,32 +22,22 @@ import (
 	"github.com/ContainerSolutions/go-utils"
 )
 
-func TestCreateKickstartFile(t *testing.T) {
-	c := createStubHTTPClient(t, "create-kickstart-file-req.xml", "create-kickstart-file-res.xml")
-
-	ks := KickstartFile{
-		Name: "/var/lib/cobbler/kickstarts/foo.ks",
-		Body: "sample content",
-	}
-
-	err := c.CreateKickstartFile(ks)
+func TestGetProfiles(t *testing.T) {
+	c := createStubHTTPClient(t, "get-profiles-req.xml", "get-profiles-res.xml")
+	profiles, err := c.GetProfiles()
 	utils.FailOnError(t, err)
+
+	if len(profiles) != 1 {
+		t.Errorf("Wrong number of profiles returned.")
+	}
 }
 
-func TestGetKickstartFile(t *testing.T) {
-	ksName := "/var/lib/cobbler/kickstarts/foo.ks"
-
-	c := createStubHTTPClient(t, "get-kickstart-file-req.xml", "get-kickstart-file-res.xml")
-
-	expectedKS := KickstartFile{
-		Name: ksName,
-		Body: "sample content",
-	}
-
-	returnedKS, err := c.GetKickstartFile(ksName)
+func TestGetProfile(t *testing.T) {
+	c := createStubHTTPClient(t, "get-profile-req.xml", "get-profile-res.xml")
+	profile, err := c.GetProfile("Ubuntu-14.04-x86_64")
 	utils.FailOnError(t, err)
 
-	if returnedKS.Body != expectedKS.Body {
-		t.Errorf("Kickstart Body did not match.")
+	if profile.Name != "Ubuntu-14.04-x86_64" {
+		t.Errorf("Wrong profile returned.")
 	}
 }

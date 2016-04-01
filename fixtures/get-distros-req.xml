@@ -1,15 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <methodCall>
-  <methodName>login</methodName>
+  <methodName>get_distros</methodName>
   <params>
     <param>
       <value>
-        <string>john</string>
+        <string>-1</string>
       </value>
     </param>
     <param>
       <value>
-        <string>doe</string>
+        <string>securetoken99</string>
       </value>
     </param>
   </params>

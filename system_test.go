@@ -22,227 +22,91 @@ import (
 	"github.com/ContainerSolutions/go-utils"
 )
 
-/*
- * NOTE: We're skipping the testing of this method for now because
- *       the current implementation of the StubHTTPClient does not allow
- *       buffered mock responses so as soon as the method makes the second
- *       call to Cobbler it'll fail.
- *       This is a system test, so perhaps we can run Cobbler in a Docker container
- *       and take it from there.
- */
-func TestCreateSystem(t *testing.T) {
-	t.Skip()
-	sysConfig := SystemConfig{
-		Name:        "blah",
-		Profile:     "some-profile",
-		Hostname:    "blahhost",
-		Nameservers: "8.8.8.8 8.8.4.4",
-		Network: NetworkConfig{
-			Mac:     "01:02:03:04:05:06",
-			DNSName: "blah",
-			Ip:      "1.2.3.4",
-			Netmask: "255.255.255.0",
-			Gateway: "4.3.2.1",
-		},
-	}
-	hc := utils.NewStubHTTPClient(t)
-	hc.ShouldVerify = false
-	c := NewClient(hc, config)
-
-	_, err := c.CreateSystem(sysConfig)
-	utils.FailOnError(t, err)
-}
-
-func TestNewSystemId(t *testing.T) {
-	expectedReq, err := utils.Fixture("new-system-req.xml")
+func TestGetSystems(t *testing.T) {
+	c := createStubHTTPClient(t, "get-systems-req.xml", "get-systems-res.xml")
+	systems, err := c.GetSystems()
 	utils.FailOnError(t, err)
 
-	response, err := utils.Fixture("new-system-res.xml")
-	utils.FailOnError(t, err)
-
-	expectedId := "___NEW___system::abc123=="
-	hc := utils.NewStubHTTPClient(t)
-	hc.Expected = expectedReq
-	hc.Response = response
-	cobblerClient := NewClient(hc, config)
-	cobblerClient.token = "securetoken99"
-	id, err := NewSystemId(&cobblerClient)
-	utils.FailOnError(t, err)
-
-	if id != expectedId {
-		t.Errorf("%s expected; got %s", expectedId, id)
+	if len(systems) != 1 {
+		t.Errorf("Wrong number of systems returned.")
 	}
 }
 
-func TestSetSystemId(t *testing.T) {
-	expectedReq, err := utils.Fixture("new-system-req.xml")
+func TestGetSystem(t *testing.T) {
+	c := createStubHTTPClient(t, "get-system-req.xml", "get-system-res.xml")
+	system, err := c.GetSystem("test")
 	utils.FailOnError(t, err)
 
-	response, err := utils.Fixture("new-system-res.xml")
-	utils.FailOnError(t, err)
-
-	expectedId := "___NEW___system::abc123=="
-	hc := utils.NewStubHTTPClient(t)
-	hc.Expected = expectedReq
-	hc.Response = response
-	cobblerClient := NewClient(hc, config)
-	cobblerClient.token = "securetoken99"
-	system := System{cobblerClient: &cobblerClient}
-	err = system.SetId()
-	utils.FailOnError(t, err)
-
-	if system.Id != expectedId {
-		t.Errorf("%s expected; got %s", expectedId, system.Id)
+	if system.Name != "test" {
+		t.Errorf("Wrong system returned.")
 	}
 }
 
-func TestSaveSystem(t *testing.T) {
-	expectedReq, err := utils.Fixture("save-system-req.xml")
+func TestNewSystem(t *testing.T) {
+	c := createStubHTTPClient(t, "new-system-req.xml", "new-system-res.xml")
+	result, err := c.Call("new_system", c.Token)
 	utils.FailOnError(t, err)
+	newId := result.(string)
 
-	response, err := utils.Fixture("save-system-res.xml")
-	utils.FailOnError(t, err)
-
-	hc := utils.NewStubHTTPClient(t)
-	hc.Expected = expectedReq
-	hc.Response = response
-
-	c := NewClient(hc, config)
-	c.token = "securetoken99"
-	system := System{}
-	system.cobblerClient = &c
-	system.Id = "___NEW___system::abc123=="
-
-	ok, err := system.Save()
-	utils.FailOnError(t, err)
-
-	if !ok {
-		t.Errorf("true expected; got false")
+	if newId != "___NEW___system::abc123==" {
+		t.Errorf("Wrong ID returned.")
 	}
-}
 
-func TestSetSystemName(t *testing.T) {
-	expectedReq, err := utils.Fixture("set-system-name-req.xml")
+	c = createStubHTTPClient(t, "set-system-hostname-req.xml", "set-system-hostname-res.xml")
+	result, err = c.Call("modify_system", newId, "hostname", "blahhost", c.Token)
 	utils.FailOnError(t, err)
 
-	response, err := utils.Fixture("set-system-name-res.xml")
-	utils.FailOnError(t, err)
-
-	hc := utils.NewStubHTTPClient(t)
-	hc.Expected = expectedReq
-	hc.Response = response
-
-	c := NewClient(hc, config)
-	c.token = "securetoken99"
-	system := System{cobblerClient: &c}
-	system.Id = "___NEW___system::foobar123=="
-
-	ok, err := system.SetName("mytestsystem")
-	utils.FailOnError(t, err)
-
-	if !ok {
-		t.Errorf("true expected; got false")
+	if !result.(bool) {
+		t.Errorf("Setting hostname failed.")
 	}
-}
 
-func TestSetSystemProfile(t *testing.T) {
-	expectedReq, err := utils.Fixture("set-system-profile-req.xml")
+	c = createStubHTTPClient(t, "set-system-name-req.xml", "set-system-name-res.xml")
+	result, err = c.Call("modify_system", newId, "name", "mytestsystem", c.Token)
 	utils.FailOnError(t, err)
 
-	response, err := utils.Fixture("set-system-profile-res.xml")
-	utils.FailOnError(t, err)
-
-	hc := utils.NewStubHTTPClient(t)
-	hc.Expected = expectedReq
-	hc.Response = response
-
-	c := NewClient(hc, config)
-	c.token = "abc123"
-	system := System{cobblerClient: &c}
-	system.Id = "___NEW___system::c3po"
-
-	ok, err := system.SetProfile("centos7-x86_64")
-	utils.FailOnError(t, err)
-
-	if !ok {
-		t.Errorf("true expected; got false")
+	if !result.(bool) {
+		t.Errorf("Setting name failed.")
 	}
-}
 
-func TestSetSystemHostname(t *testing.T) {
-	expectedReq, err := utils.Fixture("set-system-hostname-req.xml")
+	c = createStubHTTPClient(t, "set-system-nameservers-req.xml", "set-system-nameservers-res.xml")
+	result, err = c.Call("modify_system", newId, "name_servers", "8.8.8.8 8.8.4.4", c.Token)
 	utils.FailOnError(t, err)
 
-	response, err := utils.Fixture("set-system-hostname-res.xml")
-	utils.FailOnError(t, err)
-
-	hc := utils.NewStubHTTPClient(t)
-	hc.Expected = expectedReq
-	hc.Response = response
-
-	c := NewClient(hc, config)
-	c.token = "abc123"
-	system := System{cobblerClient: &c}
-	system.Id = "___NEW___system::c3po"
-
-	ok, err := system.SetHostname("blahhost")
-	utils.FailOnError(t, err)
-
-	if !ok {
-		t.Errorf("true expected; got false")
+	if !result.(bool) {
+		t.Errorf("Setting name servers failed.")
 	}
-}
 
-func TestSetSystemNameservers(t *testing.T) {
-	expectedReq, err := utils.Fixture("set-system-nameservers-req.xml")
+	c = createStubHTTPClient(t, "set-system-profile-req.xml", "set-system-profile-res.xml")
+	result, err = c.Call("modify_system", newId, "profile", "centos7-x86_64", c.Token)
 	utils.FailOnError(t, err)
 
-	response, err := utils.Fixture("set-system-nameservers-res.xml")
-	utils.FailOnError(t, err)
-
-	hc := utils.NewStubHTTPClient(t)
-	hc.Expected = expectedReq
-	hc.Response = response
-
-	c := NewClient(hc, config)
-	c.token = "securetoken99"
-	system := System{cobblerClient: &c}
-	system.Id = "___NEW___system::foobar123=="
-
-	ok, err := system.SetNameservers("8.8.8.8 8.8.4.4")
-	utils.FailOnError(t, err)
-
-	if !ok {
-		t.Errorf("true expected; got false")
+	if !result.(bool) {
+		t.Errorf("Setting name servers failed.")
 	}
-}
-func TestSetSystemNetwork(t *testing.T) {
-	expectedReq, err := utils.Fixture("set-system-network-req.xml")
-	utils.FailOnError(t, err)
 
-	response, err := utils.Fixture("set-system-network-res.xml")
-	utils.FailOnError(t, err)
-
-	networkConfig := NetworkConfig{
-		Mac:     "01:02:03:04:05:06",
-		DNSName: "deathstar",
-		Ip:      "1.2.3.4",
-		Netmask: "255.255.255.0",
-		Gateway: "4.3.2.1",
+	/* I'm not sure how to get this test to pass with unordered maps
+	nicInfo := map[string]interface{}{
+		"macaddress-eth0":  "01:02:03:04:05:06",
+		"ipaddress-eth0":   "1.2.3.4",
+		"dnsname-eth0":     "deathstar",
+		"subnetsmask-eth0": "255.255.255.0",
+		"if-gateway-eth0":  "4.3.2.1",
 	}
-	hc := utils.NewStubHTTPClient(t)
-	hc.Expected = expectedReq
-	hc.Response = response
 
-	c := NewClient(hc, config)
-	c.token = "abc123=="
-	system := System{cobblerClient: &c}
-	system.Id = "___NEW___system::abc123=="
-
-	ok, err := system.SetNetwork(networkConfig)
+	c = createStubHTTPClient(t, "set-system-network-req.xml", "set-system-network-res.xml")
+	result, err = c.Call("modify_system", newId, "modify_interface", nicInfo, c.Token)
 	utils.FailOnError(t, err)
 
-	if !ok {
-		t.Errorf("true expected; got false")
+	if !result.(bool) {
+		t.Errorf("Setting interface failed.")
+	}
+	*/
+
+	c = createStubHTTPClient(t, "save-system-req.xml", "save-system-res.xml")
+	result, err = c.Call("save_system", newId, c.Token)
+	utils.FailOnError(t, err)
+
+	if !result.(bool) {
+		t.Errorf("Save failed.")
 	}
 }

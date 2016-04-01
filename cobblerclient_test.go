@@ -17,6 +17,7 @@ limitations under the License.
 package cobblerclient
 
 import (
+	"regexp"
 	"testing"
 
 	"github.com/ContainerSolutions/go-utils"
@@ -28,17 +29,32 @@ var config = ClientConfig{
 	Password: "doe",
 }
 
-func TestLogin(t *testing.T) {
-	expectedReq, err := utils.Fixture("login-req.xml")
-	utils.FailOnError(t, err)
-
-	response, err := utils.Fixture("login-res.xml")
-	utils.FailOnError(t, err)
-
+func createStubHTTPClient(t *testing.T, reqFixture string, resFixture string) Client {
 	hc := utils.NewStubHTTPClient(t)
-	hc.Expected = expectedReq
-	hc.Response = response
+
+	if reqFixture != "" {
+		rawRequest, err := utils.Fixture(reqFixture)
+		utils.FailOnError(t, err)
+
+		// flatten the request so it matches the kolo generated xml
+		r := regexp.MustCompile(`\s+<`)
+		expectedReq := []byte(r.ReplaceAllString(string(rawRequest), "<"))
+		hc.Expected = expectedReq
+	}
+
+	if resFixture != "" {
+		response, err := utils.Fixture(resFixture)
+		utils.FailOnError(t, err)
+		hc.Response = response
+	}
+
 	c := NewClient(hc, config)
+	c.Token = "securetoken99"
+	return c
+}
+
+func TestLogin(t *testing.T) {
+	c := createStubHTTPClient(t, "login-req.xml", "login-res.xml")
 	ok, err := c.Login()
 	utils.FailOnError(t, err)
 
@@ -47,21 +63,15 @@ func TestLogin(t *testing.T) {
 	}
 
 	expected := "sa/1EWr40BWU+Pq3VEOOpD4cQtxkeMuFUw=="
-	if c.token != expected {
-		t.Errorf(`"%s" expected; got "%s"`, expected, c.token)
+	if c.Token != expected {
+		t.Errorf(`"%s" expected; got "%s"`, expected, c.Token)
 	}
 }
 
 func TestLoginWithError(t *testing.T) {
-	expected := "error 1: <class 'cobbler.cexceptions.CX'>:'login failed (cobbler)'"
-	response, err := utils.Fixture("login-res-err.xml")
-	utils.FailOnError(t, err)
+	c := createStubHTTPClient(t, "login-req.xml", "login-res-err.xml")
+	expected := `error: "<class 'cobbler.cexceptions.CX'>:'login failed (cobbler)'" code: 1`
 
-	hc := utils.NewStubHTTPClient(t)
-	hc.Response = response
-	hc.ShouldVerify = false
-
-	c := NewClient(hc, config)
 	ok, err := c.Login()
 	if ok {
 		t.Errorf("false expected; got true")
@@ -73,19 +83,9 @@ func TestLoginWithError(t *testing.T) {
 }
 
 func TestSync(t *testing.T) {
-	expectedReq, err := utils.Fixture("sync-req.xml")
-	utils.FailOnError(t, err)
-
-	response, err := utils.Fixture("sync-res.xml")
-	utils.FailOnError(t, err)
-
+	c := createStubHTTPClient(t, "sync-req.xml", "sync-res.xml")
 	expected := true
-	hc := utils.NewStubHTTPClient(t)
-	hc.Expected = expectedReq
-	hc.Response = response
 
-	c := NewClient(hc, config)
-	c.token = "securetoken99"
 	result, err := c.Sync()
 	utils.FailOnError(t, err)
 

@@ -22,15 +22,35 @@ type Snippet struct {
 }
 
 // Creates a snippet in Cobbler.
-// Returns true/false and returns an optional error in case
-// that anything goes wrong.
-func (c *Client) CreateSnippet(s *Snippet) (bool, error) {
-	body := tplCreateSnippet(s.Name, s.Body, c.token)
-	res, err := c.post(body)
+// Takes a Snippet struct as input
+// Returns true/false and error if creation failed.
+func (c *Client) CreateSnippet(s Snippet) error {
+	_, err := c.Call("read_or_write_snippet", s.Name, false, s.Body, c.Token)
+	return err
+}
+
+// Gets a snippet file in Cobbler.
+// Takes a snippet file name as input.
+// Returns *Snippet and error if read failed.
+func (c *Client) GetSnippet(name string) (*Snippet, error) {
+	result, err := c.Call("read_or_write_snippet", name, true, "", c.Token)
 
 	if err != nil {
-		return false, err
+		return nil, err
 	}
 
-	return boolFromResponse(res)
+	snippet := Snippet{
+		Name: name,
+		Body: result.(string),
+	}
+
+	return &snippet, nil
+}
+
+// Gets a snippet file in Cobbler.
+// Takes a snippet file name as input.
+// Returns error if delete failed.
+func (c *Client) DeleteSnippet(name string) error {
+	_, err := c.Call("read_or_write_snippet", name, false, -1, c.Token)
+	return err
 }
