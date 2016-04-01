@@ -126,7 +126,16 @@ func (c *Client) UpdateDistro(distro *Distro) error {
 	if err != nil {
 		return err
 	}
-	return c.updateCobblerFields("distro", item, id)
+
+	if err := c.updateCobblerFields("distro", item, id); err != nil {
+		return err
+	}
+
+	if _, err := c.Call("save_distro", id, c.Token); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 // DeleteDistro deletes a single distro by its name.

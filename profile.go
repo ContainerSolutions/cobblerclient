@@ -211,7 +211,17 @@ func (c *Client) UpdateProfile(profile *Profile) error {
 	if err != nil {
 		return err
 	}
-	return c.updateCobblerFields("profile", item, id)
+
+	if err := c.updateCobblerFields("profile", item, id); err != nil {
+		return err
+	}
+
+	// Save the final profile
+	if _, err := c.Call("save_profile", id, c.Token); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 // DeleteProfile deletes a single profile by its name.
