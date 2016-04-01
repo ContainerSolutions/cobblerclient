@@ -42,7 +42,6 @@ type Profile struct {
 	KSMeta                   string   `mapstructure:"ks_meta"`
 	MGMTClasses              []string `mapstructure:"mgmt_classes"`
 	MGMTParameters           string   `mapstructure:"mgmt_parameters"`
-	MonitEnabled             bool     `mapstructure:"monit_enabled"`
 	Name                     string   `mapstructure:"name"`
 	NameServersSearch        []string `mapstructure:"name_servers_search"`
 	NameServers              []string `mapstructure:"name_servers"`
